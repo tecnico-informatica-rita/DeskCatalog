@@ -6,3 +6,5 @@ config/config.py
 # Cache e arquivos temporários do Python
 __pycache__/
 *.pyc
+
+.env
