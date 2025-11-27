@@ -14,7 +14,7 @@ def get_db_connection():
     except psycopg2.OperationalError as e:
         print(f"❌ Erro fatal ao conectar ao PostgreSQL: {e}")
         print("Verifique suas credenciais em 'config.py' e se o servidor está rodando.")
-        exit(1) # Encerra o programa se não puder conectar
+        raise e
 
 def criar_tabelas(conn):
     """Cria as tabelas 'salas' e 'filmes' se não existirem."""
@@ -80,3 +80,5 @@ def popular_dados_padrao(conn):
     except Exception as e:
         print(f"❌ Erro ao popular dados padrão: {e}")
         conn.rollback()
+
+
