@@ -1,4 +1,6 @@
 import psycopg2
+from src.database.database import get_db_connection, criar_tabelas
+
 def criar_conexao(dbname="cinema_db", user="postgres", password="2007", host="localhost"):
     """
     Cria conexão com o banco PostgreSQL.
@@ -19,3 +21,14 @@ def criar_conexao(dbname="cinema_db", user="postgres", password="2007", host="lo
         host=host
     )
     return conn
+
+#teste_conexao_com_o_banco
+
+conn = get_db_connection()
+print("🔥 Conectado ao banco!")
+
+criar_tabelas(conn)
+print("🔥 Tabelas criadas com sucesso!")
+
+conn.close()
+print("✔️ Conexão fechada.")
