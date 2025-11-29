@@ -35,8 +35,6 @@ class Produto:
         if not self.status.strip():
             raise ValueError ("Status inválido!\n")
 
-
-
 class Emprestimo:
     """Classe que representa um emprestimo no sistema do catálogo"""
 
