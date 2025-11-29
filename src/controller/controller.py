@@ -32,9 +32,28 @@ class ControllerProduto:
     if not produto.status in status:
       raise ValueError ("Esse status não existe no catálogo.")
 
-  def adicionar_produto_existente(self, produto: model.Produto):
-    produto.validar()
 
+  def adicionar_produto_existente(self, produto: model.Produto) -> bool:
+    # Validação do produto antes de inserir
+    produto.validar()
+    self.validar_produto_banco(produto)
+
+    # Substituição dos nomes pelo ID
+    id_prod = db.buscar_id_por_nome_produto(self.conn, produto.nome)
+    id_status = db.buscar_id_por_status(self.conn, produto.status)
+
+    # Inserção do produto no banco
+    if id_prod and id_status:
+      produto.produto_banco(id_prod, id_status)
+      db.inserir_varios_produtos_iguais(self.conn, produto)
+    else:
+      raise ValueError ("Informações inválidas para cadastrar item.\n")
+    
+
+  def adicionar_produto_novo(self, produto: model.Produto) -> bool:
+    pass
+
+    
     
     
 
