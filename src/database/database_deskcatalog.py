@@ -7,7 +7,7 @@ import psycopg2
 from psycopg2 import Error as ErroPsycopg2
 from src.config.config import DB_CONFIG
 
-def buscar_nomes_produtos_existentes(conn):
+def buscar_nomes_produtos_existentes(conn) -> list:
     sql_select = """SELECT nome_produto FROM nomes_produtos"""
 
     with conn.cursor() as cur:
@@ -20,7 +20,7 @@ def buscar_nomes_produtos_existentes(conn):
 
     return retorno
 
-def buscar_nome_categorias(conn):
+def buscar_nome_categorias(conn) -> list:
     sql_select = """SELECT nome_categoria FROM categorias_produto"""
 
     with conn.cursor() as cur:
@@ -33,7 +33,7 @@ def buscar_nome_categorias(conn):
 
     return retorno
 
-def buscar_status(conn):
+def buscar_status(conn) -> list:
     sql_select = """SELECT descricao_status FROM status_produto"""
 
     with conn.cursor() as cur:
@@ -46,7 +46,7 @@ def buscar_status(conn):
 
     return retorno
 
-def buscar_id_por_nomeCategoria_produto(conn, nome, categoria):
+def buscar_id_por_nomeCategoria_produto(conn, nome, categoria) -> int:
     sql_select = "SELECT * FROM nomes_produtos WHERE nome_produto = '%s' AND id_categoria = %s;"
 
     id_categoria = buscar_id_por_categoria(conn, categoria)
@@ -56,7 +56,7 @@ def buscar_id_por_nomeCategoria_produto(conn, nome, categoria):
 
     return resultados[0] if resultados else None
 
-def buscar_id_por_categoria(conn, categoria):
+def buscar_id_por_categoria(conn, categoria) -> int:
     sql_select = "SELECT id_categoria FROM categorias_produto WHERE nome_categoria = %s;"
 
     with conn.cursor() as cur:
@@ -65,7 +65,7 @@ def buscar_id_por_categoria(conn, categoria):
 
     return resultados[0] if resultados else None
     
-def buscar_id_por_status(conn, status):
+def buscar_id_por_status(conn, status) -> int:
     sql_select = "SELECT id_status_produto FROM status_produto WHERE descricao_status = %s;"
 
     with conn.cursor() as cur:
@@ -74,8 +74,20 @@ def buscar_id_por_status(conn, status):
 
     return resultados[0] if resultados else None
 
+def buscar_idStatus_por_idProduto(conn, produto):
+    id_prod = buscar_id_por_nomeCategoria_produto(conn, produto.nome, produto.categoria)
+    sql_select = "SELECT id_status_produto FROM produtos_individuais WHERE id_produto = %s;"
 
-def inserir_produto(conn, produto):
+    with conn.cursor() as cur:
+        cur.execute(sql_select, (id_prod, ))
+        resultados = cur.fetchone()
+
+    retorno = []
+    for tupla in resultados:
+        retorno.append(tupla[0])
+    return retorno if retorno else None
+
+def inserir_produto(conn, produto) -> bool:
     sql_insert = "INSERT INTO produtos_individuais(id_produto, id_status_produto) VALUES (%s, %s)"
 
     try:
@@ -87,7 +99,7 @@ def inserir_produto(conn, produto):
     except Exception:
         raise ValueError ("Erro inesperado ao adicionar produto!")
     
-def inserir_varios_produtos_iguais(conn, produto):
+def inserir_varios_produtos_iguais(conn, produto) -> bool:
     try:
         conn.autocommit = False
 
@@ -103,7 +115,7 @@ def inserir_varios_produtos_iguais(conn, produto):
     finally:
         conn.autocommit = True
 
-def adicionar_categoria(conn, categoria):
+def adicionar_categoria(conn, categoria) -> bool:
     sql_insert = "INSERT INTO categorias_produto(nome_categoria) VALUES (%s)"
 
     try:
@@ -115,7 +127,7 @@ def adicionar_categoria(conn, categoria):
     except Exception:
         raise ValueError ("Erro inesperado ao adicionar categoria!")
     
-def adicionar_status(conn, status):
+def adicionar_status(conn, status) -> bool:
     sql_insert = "INSERT INTO status_produto(descricao_status) VALUES (%s)"
 
     try:
@@ -127,7 +139,7 @@ def adicionar_status(conn, status):
     except Exception:
         raise ValueError ("Erro inesperado ao adicionar status!")
 
-def adicionar_nome(conn, nome, id_categoria):
+def adicionar_nome(conn, nome, id_categoria) -> bool:
     sql_insert = "INSERT INTO nomes_produtos(nome_produto, id_categoria) VALUES (%s, %s)"
 
     try:
@@ -139,11 +151,53 @@ def adicionar_nome(conn, nome, id_categoria):
     except Exception:
         raise ValueError ("Erro inesperado ao adicionar nome!")
 
-def alterar_status(conn, novo_status: str):
+def alterar_status(conn, produto, status_antigo:str):
+    id_status_novo = buscar_id_por_status(conn, produto.novo_status)
+    id_prod = buscar_id_por_nomeCategoria_produto(conn, produto.nome, produto.categoria)
+    id_status_antigo = buscar_id_por_status(conn, status_antigo)
+
+    if not id_status_novo:
+        raise ValueError (f"Erro: O Status '{produto.status}' não foi encontrado no catálogo.")
+    if not id_status_antigo:
+        raise ValueError (f"Erro: O Status '{status_antigo}' não foi encontrado no catálogo.")
+    if not id_prod:
+        raise ValueError ("Esse produto não existe no catálogo.\n")
+    if id_status_antigo == produto.status:
+        raise ValueError ("Operação redundante, o status é o mesmo.")
+    
+    sql_update = "UPDATE produtos_individuais SET id_status_produto = %s WHERE id_status_produto = %s AND id_produto = %s"
+
+    try:
+        conn.autocommit = False
+        for _ in range(produto.quantidade):
+            with conn.cursor() as cur:
+                cur.execute(sql_update, (id_status_novo, id_status_antigo, id_prod, ))
+
+        conn.commit()
+        return True
+    except Exception:
+        conn.rollback()
+        raise ValueError ("Erro inesperado ao adicionar nome!")
+    finally:
+        conn.autocommit = True
+
+def alterar_nome(conn, novo_nome: str, produto):
     pass
 
-def alterar_nome(conn, novo_nome: str):
+def alterar_categoria(conn, nova_categoria: str, produto):
     pass
 
-def alterar_categoria(conn, nova_categoria: str):
-    pass
+def buscar_todos_produtos():
+    sql_select_view = """
+        SELECT pi.nu_patrimonio, c.nome_categoria, n.nome_produto, s.descricao_status
+        FROM produtos_individuais AS pi 
+        JOIN nomes_produtos AS n ON n.id_produto = pi.id_produto
+        JOIN categorias_produto AS c ON c.id_categoria = n.id_categoria
+
+        JOIN status_produto AS s ON s.id_status_produto = pi.id_status_produto
+
+        ORDER BY 
+        c.nome_categoria ASC,
+        n.nome_produto ASC,
+        pi.nu_patrimonio DESC
+    """

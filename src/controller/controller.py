@@ -88,6 +88,9 @@ class ControllerProduto:
           raise ValueError ("Erro interno: Falha ao confirmar o ID do produto recém-cadastrado.")
     except Exception as e:
       raise ValueError (f"Erro inesperado durante a persistência de dados: {e}")
+    
+  def alterar_dados_produto(self, ):
+    pass
 
 
 
