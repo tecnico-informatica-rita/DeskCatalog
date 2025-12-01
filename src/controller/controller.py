@@ -7,7 +7,7 @@ Camada Controller (Controle):
 - Gerencia o estado da aplicação (ex: o carrinho).
 """
 
-import src.model.model as model
+import src.model.model_deskcatalog as model
 import src.view.view as view
 import src.database.database_deskcatalog as db
 
@@ -18,40 +18,82 @@ class ControllerProduto:
   def __init__(self, conn):
     self.conn = conn
 
-  def validar_produto_banco(self, produto):
-    nomes_produtos = db.buscar_nomes_produtos_existentes(self.conn)
-    nomes_categorias = db.buscar_nome_categorias(self.conn)
-    status = db.buscar_status(self.conn)
+  #     FUNÇÕES DE VALIDAÇÃO
 
-    if not produto.nome in nomes_produtos:
+  def validar_nomeCategoria(self, produto):
+    id_prod = db.buscar_id_por_nomeCategoria_produto(self.conn, produto.nome, produto.categoria)
+    if not id_prod:
       raise ValueError ("Esse item não existe no catálogo.")
-    
-    if not produto.categoria in nomes_categorias:
+    return id_prod
+  
+  def validar_status(self, produto):
+    id_status = db.buscar_id_por_status(self.conn, produto.status)
+    if not id_status:
       raise ValueError ("Essa categoria não existe no catálogo.")
+    return id_status
+  
+  def validar_categoria(self, produto):
+    id_categoria = db.buscar_id_por_categoria(self.conn, produto.categoria)
+    if not id_categoria:
+      raise ValueError ("Essa categoria não existe no catálogo.")
+    return id_categoria
 
-    if not produto.status in status:
-      raise ValueError ("Esse status não existe no catálogo.")
 
+  #     FUNÇÕES DO MENU
 
   def adicionar_produto_existente(self, produto: model.Produto) -> bool:
     # Validação do produto antes de inserir
     produto.validar()
-    self.validar_produto_banco(produto)
-
-    # Substituição dos nomes pelo ID
-    id_prod = db.buscar_id_por_nome_produto(self.conn, produto.nome)
-    id_status = db.buscar_id_por_status(self.conn, produto.status)
-
+    
+    # Verificando se esse produto existe no banco
+    id_prod = self.validar_nomeCategoria(produto)
+    id_status = self.validar_status(produto)
+    
     # Inserção do produto no banco
     if id_prod and id_status:
-      produto.produto_banco(id_prod, id_status)
+      produto.produto_banco(id_prod, id_status) # Substituição dos atributos pelo ID
       db.inserir_varios_produtos_iguais(self.conn, produto)
+      return True
     else:
       raise ValueError ("Informações inválidas para cadastrar item.\n")
     
 
+
   def adicionar_produto_novo(self, produto: model.Produto) -> bool:
-    pass
+    # Validação do produto antes de inserir
+    produto.validar()
+    
+    # Verificando que não existe esse produto no banco
+    id_prod = self.validar_nome(produto)
+    if id_prod:
+      raise ValueError ("Esse produto já existe no catálogo.\n")
+    
+    id_status = self.validar_status(produto)
+    if not id_status:
+      raise ValueError (f"Erro: O Status '{produto.status}' não foi encontrado no catálogo.")
+    
+    id_categoria = self.validar_categoria(produto)
+    if not id_categoria:
+      raise ValueError (f"Erro: A Categoria '{produto.categoria}' não foi encontrada no catálogo.")
+    
+    # Adicionando no banco a categoria, o status e o nome
+    try:
+        db.adicionar_nome(self.conn, produto.nome, id_categoria)
+        id_prod = self.validar_nome(produto)
+        if id_prod:
+          produto.produto_banco(id_prod, id_status)
+          db.inserir_varios_produtos_iguais(self.conn, produto)
+          return True
+        else:
+          raise ValueError ("Erro interno: Falha ao confirmar o ID do produto recém-cadastrado.")
+    except Exception as e:
+      raise ValueError (f"Erro inesperado durante a persistência de dados: {e}")
+
+
+
+    
+
+
 
     
     

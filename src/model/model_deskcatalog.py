@@ -39,7 +39,7 @@ class Produto:
     def produto_banco(self, id_produto, id_status):
         self.id_produto = id_produto
         self.id_status = id_status
-        
+
 
 class Emprestimo:
     """Classe que representa um emprestimo no sistema do catálogo"""
