@@ -47,7 +47,7 @@ def buscar_status(conn) -> list:
     return retorno
 
 def buscar_id_por_nomeCategoria_produto(conn, nome, categoria) -> int:
-    sql_select = "SELECT * FROM nomes_produtos WHERE nome_produto = '%s' AND id_categoria = %s;"
+    sql_select = "SELECT * FROM nomes_produtos WHERE nome_produto = %s AND id_categoria = %s;"
 
     id_categoria = buscar_id_por_categoria(conn, categoria)
     with conn.cursor() as cur:
@@ -74,17 +74,19 @@ def buscar_id_por_status(conn, status) -> int:
 
     return resultados[0] if resultados else None
 
-def buscar_idStatus_por_idProduto(conn, produto):
+def buscar_status_e_quantidade_por_produto(conn, produto):
     id_prod = buscar_id_por_nomeCategoria_produto(conn, produto.nome, produto.categoria)
-    sql_select = "SELECT id_status_produto FROM produtos_individuais WHERE id_produto = %s;"
+    sql_select = "SELECT id_status_produto, COUNT(*) FROM produtos_individuais WHERE id_produto = %s GROUP BY id_status_produto;"
 
     with conn.cursor() as cur:
         cur.execute(sql_select, (id_prod, ))
-        resultados = cur.fetchone()
+        resultados = cur.fetchall()
 
     retorno = []
-    for tupla in resultados:
-        retorno.append(tupla[0])
+    for linha in resultados:
+        dicio = {"id_status": linha[0], 
+         "quantidade": linha[1]}
+        retorno.append(dicio)
     return retorno if retorno else None
 
 def inserir_produto(conn, produto) -> bool:
@@ -92,7 +94,7 @@ def inserir_produto(conn, produto) -> bool:
 
     try:
         with conn.cursor() as cur:
-            cur.execute(sql_insert, (produto.id_produto, produto.id_status, produto.id_categoria))
+            cur.execute(sql_insert, (produto.id_produto, produto.id_status))
         return True
     except ErroPsycopg2:
         raise ValueError ("Erro ao adicionar produto!")
@@ -131,26 +133,35 @@ def adicionar_status(conn, status) -> bool:
     sql_insert = "INSERT INTO status_produto(descricao_status) VALUES (%s)"
 
     try:
+        conn.autocommit = False
         with conn.cursor() as cur:
             cur.execute(sql_insert, (status, ))
+        conn.commit()
         return True
     except ErroPsycopg2:
+        conn.rollback()
         raise ValueError ("Erro ao adicionar status!")
     except Exception:
         raise ValueError ("Erro inesperado ao adicionar status!")
+    finally:
+        conn.autocommit = True
 
 def adicionar_nome(conn, nome, id_categoria) -> bool:
     sql_insert = "INSERT INTO nomes_produtos(nome_produto, id_categoria) VALUES (%s, %s)"
 
     try:
+        conn.autocommit = False
         with conn.cursor() as cur:
             cur.execute(sql_insert, (nome, id_categoria ))
+        conn.commit()
         return True
     except ErroPsycopg2:
+        conn.rollback()
         raise ValueError ("Erro ao adicionar nome!")
     except Exception:
         raise ValueError ("Erro inesperado ao adicionar nome!")
-
+    finally:
+        conn.autocommit = True
 def alterar_status(conn, produto, status_antigo:str):
     id_status_novo = buscar_id_por_status(conn, produto.novo_status)
     id_prod = buscar_id_por_nomeCategoria_produto(conn, produto.nome, produto.categoria)
@@ -162,22 +173,29 @@ def alterar_status(conn, produto, status_antigo:str):
         raise ValueError (f"Erro: O Status '{status_antigo}' não foi encontrado no catálogo.")
     if not id_prod:
         raise ValueError ("Esse produto não existe no catálogo.\n")
-    if id_status_antigo == produto.status:
+    if id_status_antigo == id_status_novo:
         raise ValueError ("Operação redundante, o status é o mesmo.")
     
-    sql_update = "UPDATE produtos_individuais SET id_status_produto = %s WHERE id_status_produto = %s AND id_produto = %s"
+    sql_buscar = "SELECT nu_patrimonio FROM produtos_individuais WHERE id_status_produto = %s AND id_produto = %s ORDER BY nu_patrimonio ASC LIMIT %s;"
+    sql_update = "UPDATE produtos_individuais SET id_status_produto = %s WHERE nu_patrimonio = %s"
 
     try:
         conn.autocommit = False
-        for _ in range(produto.quantidade):
-            with conn.cursor() as cur:
-                cur.execute(sql_update, (id_status_novo, id_status_antigo, id_prod, ))
+        with conn.cursor() as cur:
+            cur.execute(sql_buscar, (id_status_antigo, id_prod, produto.quantidade))
+            lista_patrimonios = cur.fetchall()
 
+            if len(lista_patrimonios) < produto.quantidade:
+                raise ValueError(f"Existem apenas {len(lista_patrimonios)} unidades com status '{status_antigo}'.")
+            
+            for (patrimonio,) in lista_patrimonios:
+                cur.execute(sql_update, (id_status_novo, patrimonio))
+                lista_patrinomios = cur.fetchall()
         conn.commit()
         return True
     except Exception:
         conn.rollback()
-        raise ValueError ("Erro inesperado ao adicionar nome!")
+        raise ValueError ("Erro inesperado ao alterar status!")
     finally:
         conn.autocommit = True
 
@@ -187,8 +205,9 @@ def alterar_nome(conn, novo_nome: str, produto):
 def alterar_categoria(conn, nova_categoria: str, produto):
     pass
 
-def buscar_todos_produtos():
+def criar_view_todos_produtos(conn):
     sql_select_view = """
+        CREATE OR REPLACE VIEW vw_todos_produtos AS
         SELECT pi.nu_patrimonio, c.nome_categoria, n.nome_produto, s.descricao_status
         FROM produtos_individuais AS pi 
         JOIN nomes_produtos AS n ON n.id_produto = pi.id_produto
@@ -201,3 +220,19 @@ def buscar_todos_produtos():
         n.nome_produto ASC,
         pi.nu_patrimonio DESC
     """
+    try:
+        with conn.cursor() as cur:
+            cur.execute(sql_select_view,)
+        return True
+    except Exception as e:
+        raise ValueError (f"Erro inesperado ao realizar query: {e}")
+    
+def exibir_todos_produtos(conn):
+    with conn.cursor() as cur:
+        sql_select = "SELECT * FROM vw_todos_produtos"
+        cur.execute(sql_select)
+        rows = cur.fetchall()
+        return rows
+    
+#       EMPRÉSTIMOS
+def 

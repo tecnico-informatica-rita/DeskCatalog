@@ -29,7 +29,7 @@ class ControllerProduto:
   def validar_status(self, produto):
     id_status = db.buscar_id_por_status(self.conn, produto.status)
     if not id_status:
-      raise ValueError ("Essa categoria não existe no catálogo.")
+      raise ValueError ("Esse status não existe no catálogo.")
     return id_status
   
   def validar_categoria(self, produto):
@@ -64,7 +64,7 @@ class ControllerProduto:
     produto.validar()
     
     # Verificando que não existe esse produto no banco
-    id_prod = self.validar_nome(produto)
+    id_prod = self.validar_nomeCategoria(produto)
     if id_prod:
       raise ValueError ("Esse produto já existe no catálogo.\n")
     
@@ -89,9 +89,30 @@ class ControllerProduto:
     except Exception as e:
       raise ValueError (f"Erro inesperado durante a persistência de dados: {e}")
     
+
   def alterar_dados_produto(self, ):
     pass
 
+
+  def exibir_todos_produtos(self,):
+    resultados = db.exibir_todos_produtos(self.conn)
+
+    lista = []
+    for i in resultados:
+      resultado_dict = {
+        'patrimonio': i[0],
+        'categoria': i[1],
+        'nome': i[2],
+        'status': i[3]
+      }
+      lista.append(resultado_dict)
+
+      return lista
+    
+
+#       REALIZANDO EMPRÉSTIMOS
+  def registrar_emprestimo(conn, emprestimo):
+    pass
 
 
     
