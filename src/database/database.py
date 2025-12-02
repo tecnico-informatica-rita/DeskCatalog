@@ -94,44 +94,19 @@ def criar_tabelas(conn):
         print(f"❌ Erro ao criar tabelas: {e}")
         conn.rollback()
 
+def pegar_linhas_da_view_do_banco(nome_view):
+    """Essa função retorna a visao de determinada categoria"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(f"SELECT * FROM {nome_view}")
+    resultado = cursor.fetchall()
+    conn.close()
+    return resultado
 
+def separar_o_retorno_por_variavel():
+    """Pega a lista acima e guarda em variaveis o-pra usar depois"""
+    pass
 
-
-
-def popular_dados_padrao(conn):
-    """Popula o banco com dados iniciais se estiver vazio."""
-    try:
-        with conn.cursor() as cursor:
-            # Verifica se já existem dados
-            cursor.execute("SELECT COUNT(*) FROM salas")
-            if cursor.fetchone()[0] > 0:
-                print("ℹ️  Banco de dados já populado. Ignorando...")
-                return
-
-            # Inserir Salas
-            salas = [
-                (1, "Sala Digital"),
-                (2, "Sala Premium")
-            ]
-            cursor.executemany("INSERT INTO salas (id, nome) VALUES (%s, %s)", salas)
-
-            # Inserir Filmes
-            filmes = [
-                (1, "Aventura Espacial", "15:00", "matinê", 1, 15.00),
-                (2, "Comédia Romântica", "16:30", "matinê", 2, 15.00),
-                (3, "Thriller Noturno", "20:00", "noturno", 1, 20.00),
-                (4, "Drama Épico", "21:30", "noturno", 2, 20.00)
-            ]
-            cursor.executemany("""
-                INSERT INTO filmes (id, nome, horario, tipo, sala_id, preco) 
-                VALUES (%s, %s, %s, %s, %s, %s)
-            """, filmes)
-            
-            conn.commit()
-            print("✅ Banco de dados populado com dados padrão.")
-            
-    except Exception as e:
-        print(f"❌ Erro ao popular dados padrão: {e}")
-        conn.rollback()
-
+linhas = pegar_linhas_da_view_do_banco('visao_informatica')
+print(type(linhas))
 
