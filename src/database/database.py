@@ -103,10 +103,29 @@ def pegar_linhas_da_view_do_banco(nome_view):
     conn.close()
     return resultado
 
-def separar_o_retorno_por_variavel():
+def separar_o_retorno_por_variavel(lista):
     """Pega a lista acima e guarda em variaveis o-pra usar depois"""
-    pass
+    produtos = []
+    for nome, status, unidades in lista:
+        produtos.append({
+            "Produto": nome,
+            "Status": status,
+            "Unidades": unidades
+        })
+    conn = get_db_connection()
+    cursor = conn.cursor
+    conn.close()
+    conn.close()
+    return produtos
+
 
 linhas = pegar_linhas_da_view_do_banco('visao_informatica')
-print(type(linhas))
+#print(type(linhas))
 
+a = separar_o_retorno_por_variavel(linhas)
+print(a)
+
+"""
+AGORA PRECISO CRIAR UM CARD E UMA FUNÇAO QUE CRIA UM 
+CARD PARA CADA CONJUNTO DE INFORMAÇOES DA LISTAR QUE EU CRIEI
+"""
