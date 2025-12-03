@@ -7,9 +7,9 @@ Camada Controller (Controle):
 - Gerencia o estado da aplicação (ex: o carrinho).
 """
 
-import src.model.model_deskcatalog as model
-import src.view.view as view
-import src.database.database_deskcatalog as db
+import model.model_deskcatalog as model
+import view.view as view
+import database.database_funcoes as db
 
 
 class ControllerProduto:

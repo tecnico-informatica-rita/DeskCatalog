@@ -44,7 +44,7 @@ class Produto:
 class Emprestimo:
     """Classe que representa um emprestimo no sistema do catálogo"""
 
-    tz = pytz.timezone('America/Sao Paulo')
+    tz = pytz.timezone('America/Sao_Paulo')
 
     def __init__(self, nome_devolucao: str, nome_emprestimo: str, data_devolucao: str, nu_patrimonio: int):
         self.nu_patrimonio = nu_patrimonio

@@ -5,7 +5,7 @@ criação de tabelas e população de dados iniciais.
 """
 import psycopg2
 from psycopg2 import Error as ErroPsycopg2
-from src.config.config import DB_CONFIG
+from config.config import DB_CONFIG
 
 def buscar_nomes_produtos_existentes(conn) -> list:
     sql_select = """SELECT nome_produto FROM nomes_produtos"""

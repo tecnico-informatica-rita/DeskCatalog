@@ -13,8 +13,8 @@ Responsabilidades:
 6. Gerenciar o fechamento da conexão com o banco.
 """
 
-import src.database.database as database   # Para setup e conexão
-import src.controller.controller as controller   # O cérebro da aplicação
+import database.database_banco as database   # Para setup e conexão
+import controller.controller as controller   # O cérebro da aplicação
 import sys            # Para encerrar o programa em caso de erro de DB
 
 def main():
@@ -35,8 +35,8 @@ def main():
         
         # 3. Instanciar e executar o controlador
         # O controlador recebe a conexão para passar aos seus gerenciadores
-        app = controller.SistemaCinema(conn)
-        app.run()
+        #app = controller.SistemaCinema(conn)
+        #app.run()
         
     except Exception as e:
         print(f"❌ Ocorreu um erro inesperado na aplicação: {e}")

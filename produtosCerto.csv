@@ -1,0 +1,67 @@
+﻿CATEGORIA;PRODUTO;QTD;STATUS
+Salas/Laboratórios;Auditório;1;Ativo
+Salas/Laboratórios;Sala de Inovação/Ideação;1;Ativo
+Salas/Laboratórios;Laboratório Maker;1;Ativo
+Salas/Laboratórios;Laboratório de Informática 1;1;Ativo
+Salas/Laboratórios;Laboratório de Informática 2;1;Ativo
+Salas/Laboratórios;Laboratório de Informática 3;1;Ativo
+Salas/Laboratórios;Laboratório de Informática 4;1;Ativo
+Informática;Notebook Core i3;40;Ativo
+Informática;Notebook Core i7;36;Ativo
+Áudio e Vídeo;Datashow Projetor;4;Ativo
+Áudio e Vídeo;Caixa de Som Amplificada;3;Ativo
+Áudio e Vídeo;Microfone sem fio;4;Ativo
+Informática;Computador Desktop Completo;20;Ativo
+Informática;Monitor 24 polegadas;25;Ativo
+Informática;Estabilizador 500VA;18;Ativo
+Infraestrutura;Ar-Condicionado 12.000 BTU;10;Ativo
+Infraestrutura;Ar-Condicionado 18.000 BTU;4;Ativo
+Mobiliário;Mesa de Professor;15;Ativo
+Mobiliário;Mesa de Escritório;10;Ativo
+Mobiliário;Cadeira Giratória;25;Ativo
+Mobiliário;Cadeira Escolar;120;Ativo
+Mobiliário;Armário de Aço 2 portas;8;Ativo
+Mobiliário;Estante de livros;6;Ativo
+Informática;Mouse USB;60;Ativo
+Informática;Teclado USB;55;Ativo
+Áudio e Vídeo;Headset com Microfone;35;Ativo
+Informática;Cabo HDMI 1.8m;30;Ativo
+Informática;Cabo VGA 1.5m;15;Ativo
+Informática;Adaptador USB-C -> HDMI;12;Ativo
+Informática;Pen Drive 32 GB;40;Ativo
+Informática;Roteador Wi-fi;8;Ativo
+Informática;Switch 24 portas;6;Ativo
+Informática;Patch Cords diversos;50;Ativo
+Informática;Nobreak 1400VA;5;Ativo
+Informática;Impressora Laser;6;Ativo
+Informática;Multifuncional;4;Ativo
+Informática;Scanner;2;Ativo
+Material de Escritório;Resma de Papel A4;200;Ativo
+Material de Escritório;Caneta Azul;300;Ativo
+Material de Escritório;Caneta Preta;300;Ativo
+Material de Escritório;Caneta Vermelha;150;Ativo
+Material de Escritório;Lápis;500;Ativo
+Material de Escritório;Borracha;200;Ativo
+Material de Escritório;Apontador;120;Ativo
+Material de Escritório;Grampeador;20;Ativo
+Material de Escritório;Caixa de Grampos;150;Ativo
+Material de Escritório;Cola Bastão;200;Ativo
+Material de Escritório;Cola Líquida;80;Ativo
+Material de Escritório;Post-it bloco pequeno;90;Ativo
+Material de Escritório;Caderno 96 folhas;180;Ativo
+Material de Escritório;Pasta Catálogo;70;Ativo
+Material de Escritório;Pasta L;500;Ativo
+Material de Escritório;Envelope pardo;300;Ativo
+Material de Escritório;Marcador  de Quadro Branco;200;Ativo
+Mobiliário;Quadro Branco pequeno;20;Ativo
+Material de Escritório;Tesoura escolar;120;Ativo
+Material de Escritório;Régua 30cm;150;Ativo
+Material de Escritório;Fita adesiva;100;Ativo
+Material de Escritório;Fita dupla face;60;Ativo
+Áudio e Vídeo;Projetor portátil mini;2;Ativo
+Informática;"Tablet 10""";15;Ativo
+Informática;Leitor de código de barras;10;Ativo
+Segurança;Câmera de segurança;12;Ativo
+Infraestrutura;Extensão Elétrica 5 tomadas;40;Ativo
+Áudio e Vídeo;Tripé para projetor;4;Ativo
+Mobiliário;Caixa Organizadora Plástica;60;Ativo
