@@ -119,11 +119,10 @@ def separar_o_retorno_por_variavel(lista):
     return produtos
 
 
-linhas = pegar_linhas_da_view_do_banco('visao_informatica')
+linhas_informatica = pegar_linhas_da_view_do_banco('visao_informatica')
 #print(type(linhas))
 
-a = separar_o_retorno_por_variavel(linhas)
-print(a)
+separar_linhas_categoria_informatica = separar_o_retorno_por_variavel(linhas_informatica)
 
 """
 AGORA PRECISO CRIAR UM CARD E UMA FUNÇAO QUE CRIA UM 
