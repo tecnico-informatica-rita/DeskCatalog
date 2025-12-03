@@ -111,7 +111,14 @@ class ControllerProduto:
     
 
 #       REALIZANDO EMPRÉSTIMOS
-  def registrar_emprestimo(conn, emprestimo):
+
+class ControllerEmprestimo:
+  """Interliga o produto ao banco de dados e a view"""
+
+  def __init__(self, conn):
+    self.conn = conn
+
+  def registrar_emprestimo(conn, emprestimo, produto):
     pass
 
 

@@ -234,5 +234,68 @@ def exibir_todos_produtos(conn):
         rows = cur.fetchall()
         return rows
     
+
+
 #       EMPRÉSTIMOS
-def 
+
+def buscar_id_por_disponibilidade(conn, nome_disponibilidade):
+    sql_select = "SELECT id_disponibilidade FROM status_disponibilidade_produto WHERE descricao_disponibilidade = %s"
+
+    with conn.cursor() as cur:
+        cur.execute(sql_select, (nome_disponibilidade, ))
+        resultados = cur.fetchone()
+
+    return resultados[0] if resultados else None
+
+def validar_nu_patrimonio(conn, nu_patrimonio):
+    sql_select = "SELECT nu_patrimonio FROM produtos_individuais WHERE nu_patrimonio = %s"
+
+    with conn.cursor() as cur:
+        cur.execute(sql_select, (nu_patrimonio, ))
+        resultados = cur.fetchone()
+
+    return True if resultados else False
+
+def buscar_nuP_validos_por_id_produto(conn, nome, categoria):
+    id_prod = buscar_id_por_nomeCategoria_produto(conn, nome, categoria)
+    
+
+def validar_emprestimo(conn, emprestimo, quantidade):
+    if quantidade <= 0 and not isinstance(quantidade, int):
+        raise ValueError ("Erro: quantidade inválida!")
+    nu_patrimonio_valido = validar_nu_patrimonio(conn, emprestimo.nu_patrimonio)
+    id_disponibilidade = buscar_id_por_disponibilidade(conn, 'Emprestado')
+
+    if not nu_patrimonio_valido:
+        raise ValueError ("Erro: número do patrimônio inválido!")
+    
+    if not id_disponibilidade:
+        raise ValueError ("Erro: disponibilidade inválida!")
+    
+    emprestimo.id_disponibilidade = id_disponibilidade
+    emprestimo.data_emprestimo = emprestimo.agora()
+    emprestimo.data_devolucao = emprestimo.converter_data_timestamp()
+
+def realizar_emprestimo(conn, emprestimo):
+    emprestimo.validar()
+    validar_emprestimo(conn, emprestimo)
+
+    sql_insert = """INSERT INTO emprestimos(nu_patrimonio, id_disponibilidade, data_devolucao, nome_emprestimos, data_emprestimo) 
+                    VALUES (%s, %s, %s, %s, %s);"""
+    
+    sql_insert = "INSERT INTO status_disponibilidade_produto (descricao_disponibilidade) VALUES (%s)"
+
+    if conn is None:
+        raise ValueError("Erro com a conexão com o banco de dados.")
+
+    try:
+        with conn.cursor() as cur:
+            cur.execute(sql_insert, )
+            
+            inseridos = cur.rowcount
+        conn.commit()
+        return inseridos
+
+    except (Exception, psycopg2.Error) as e:
+        conn.rollback()
+        raise ValueError (f"Erro ao inserir dados no PostgreSQL: {e}")

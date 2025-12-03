@@ -46,10 +46,9 @@ class Emprestimo:
 
     tz = pytz.timezone('America/Sao Paulo')
 
-    def __init__(self, nome_devolucao: str, nome_emprestimo: str, data_devolucao: str):
-        self.id_emprestimo = None
-        self.nu_patrimonio = None
-        self.disponibilidade = None
+    def __init__(self, nome_devolucao: str, nome_emprestimo: str, data_devolucao: str, nu_patrimonio: int):
+        self.nu_patrimonio = nu_patrimonio
+        self.id_disponibilidade = None
         self.nome_devolucao = nome_devolucao.strip().title()
         self.nome_emprestimo = nome_emprestimo.strip().title()
         self.data_devolucao = data_devolucao.strip()
@@ -62,6 +61,9 @@ class Emprestimo:
             raise ValueError ("Nome do devolutor inválido.\n")
         if not self.nome_emprestimo:
             raise ValueError ("Nome do solicitador inválido.\n")
+        
+        if not self.nu_patrimonio or not isinstance(self.nu_patrimonio, int):
+            raise ValueError ("Número do patrimônio inválido.\n")
         
         data_datetime = self.data_devolucao_str_para_date()
         hoje = dt.now(self.tz).date()
