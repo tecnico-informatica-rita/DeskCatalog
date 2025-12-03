@@ -1,7 +1,14 @@
+# Ambiente virtual
 venv/
 
-# Cache e arquivos temporários do Python
+# Python cache
 __pycache__/
 *.pyc
 
+# Arquivos sensíveis
 .env
+
+
+
+# Sistema
+*.log
