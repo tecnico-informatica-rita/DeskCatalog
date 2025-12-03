@@ -118,12 +118,11 @@ def separar_o_retorno_por_variavel(lista):
     conn.close()
     return produtos
 
-
+#PREPARANDO DADOS PARA COLOCAR NOS BOTOES DA PAGINA VIEW
+#--- CATEGORIA INFORMATICA
 linhas_informatica = pegar_linhas_da_view_do_banco('visao_informatica')
-#print(type(linhas))
-
 separar_linhas_categoria_informatica = separar_o_retorno_por_variavel(linhas_informatica)
-
+#--- CATEGORIA 
 """
 AGORA PRECISO CRIAR UM CARD E UMA FUNÇAO QUE CRIA UM 
 CARD PARA CADA CONJUNTO DE INFORMAÇOES DA LISTAR QUE EU CRIEI

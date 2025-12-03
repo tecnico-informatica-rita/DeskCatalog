@@ -1,0 +1,105 @@
+==================================================
+1. Pegando os dados no PostgreSQL com psycopg2
+==================================================
+ 
+import psycopg2
+ 
+def carregar_produtos():
+    conn = psycopg2.connect(
+        dbname="seu_db",
+        user="seu_user",
+        password="sua_senha",
+        host="localhost",
+        port="5432"
+    )
+    cur = conn.cursor()
+ 
+    cur.execute("
+        SELECT nome_produto, status_disponibilidade, unidades_total
+        FROM estoque
+    ")
+    linhas = cur.fetchall()
+ 
+    produtos = []
+    for nome, status, unidades in linhas:
+        produtos.append({
+            "Produto": nome,
+            "Status Disponibilidade Atual": status,
+            "Unidades (Total)": unidades
+        })
+ 
+    cur.close()
+    conn.close()
+    return produtos
+ 
+ 
+==================================================
+2. Criando função que transforma cada item em um card Flet
+==================================================
+ 
+import flet as ft
+ 
+def criar_card(produto):
+    nome = produto["Produto"]
+    status = produto["Status Disponibilidade Atual"]
+    unidades = produto["Unidades (Total)"]
+ 
+    cor_status = ft.colors.GREEN_400 if status.lower() == "disponível" else ft.colors.RED_400
+ 
+    return ft.Container(
+        width=250,
+        padding=15,
+        border_radius=12,
+        bgcolor=ft.colors.WHITE,
+        shadow=ft.BoxShadow(blur_radius=12, spread_radius=1, color="#00000020"),
+        content=ft.Column([
+            ft.Text(nome, weight=ft.FontWeight.BOLD, size=18),
+            ft.Text(f"Status: {status}", color=cor_status),
+            ft.Text(f"Unidades: {unidades}")
+        ])
+    )
+ 
+ 
+==================================================
+3. Criando vários cards automaticamente
+==================================================
+ 
+def criar_lista_cards(produtos):
+    cards = []
+ 
+    for p in produtos:
+        cards.append(criar_card(p))
+ 
+    return ft.Row(
+        controls=cards,
+        wrap=True,
+        spacing=20
+    )
+ 
+ 
+==================================================
+4. Colocando tudo dentro do app Flet
+==================================================
+ 
+def main(page: ft.Page):
+    page.title = "Catálogo de Salas / Laboratórios"
+    page.padding = 20
+    page.bgcolor = "#F2F2F2"
+ 
+    produtos = carregar_produtos()
+    cards_view = criar_lista_cards(produtos)
+ 
+    page.add(cards_view)
+ 
+ft.app(target=main)
+ 
+ 
+==================================================
+Resultado Final
+==================================================
+ 
+- Um card para cada item da lista
+- Nome visível
+- Status colorido (verde/vemelho)
+- Unidades exibidas
+- Layout igual aos quadradinhos do seu print
