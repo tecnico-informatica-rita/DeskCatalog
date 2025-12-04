@@ -395,7 +395,9 @@ def realizar_emprestimo(conn, emprestimo, qtd, pat_validos):
             conn.rollback()
             raise ValueError(f"Erro ao confirmar transação de empréstimo: {e}")
     
-def buscar_produtos_emprestados(conn):
+    #       DEVOLUÇÕES
+    
+def buscar_produtos_emprestados_30(conn):
     sql_select_view = """
         SELECT 
 n.nome_produto, c.nome_categoria, d.descricao_disponibilidade, e.nome_emprestimos, e.data_emprestimo, e.data_devolucao 
@@ -412,5 +414,7 @@ JOIN status_disponibilidade_produto AS d ON d.id_disponibilidade = e.id_disponib
     except Exception as e:
         raise ValueError (f"Erro inesperado ao realizar query: {e}")
     
+def buscar_historico_emprestados(conn):
+    pass
 def realizar_devolucao(conn):
     pass
