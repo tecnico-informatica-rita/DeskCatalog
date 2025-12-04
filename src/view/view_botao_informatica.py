@@ -6,13 +6,13 @@ def criar_card(produto, on_click_disponivel=None, on_click_indisponivel=None):
     status = produto["Status"].lower()
     unidades = produto["Unidades"]
 
-    if status == "disponível":
+    if status == "Ativo":
         cor_botao = ft.Colors.GREEN_400
         texto_botao = "Disponível"
         on_click = on_click_disponivel
     else:
         cor_botao = ft.Colors.RED_400
-        texto_botao = "Indisponível"
+        texto_botao = "Inativo"
         on_click = on_click_indisponivel
 
     return ft.Container(

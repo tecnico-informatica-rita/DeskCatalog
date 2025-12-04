@@ -120,8 +120,8 @@ def separar_o_retorno_por_variavel(lista):
 
 #PREPARANDO DADOS PARA COLOCAR NOS BOTOES DA PAGINA VIEW
 #--- CATEGORIA INFORMATICA
-linhas_informatica = pegar_linhas_da_view_do_banco('visao_informatica')
-separar_linhas_categoria_informatica = separar_o_retorno_por_variavel(linhas_informatica)
+print(pegar_linhas_da_view_do_banco('visao_informatica'))
+#separar_linhas_categoria_informatica = separar_o_retorno_por_variavel(linhas_informatica)
 #--- CATEGORIA 
 """
 AGORA PRECISO CRIAR UM CARD E UMA FUNÇAO QUE CRIA UM 
