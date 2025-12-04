@@ -266,11 +266,11 @@ def buscar_nuP_validos_por_id_produto(conn, nome, categoria):
 
     return retorno
 
-def validar_nu_patrimonio(conn, nu_patrimonio):
+def validar_nu_patrimonio_ativo(conn, nu_patrimonio):
     status = 'Ativo'
 
     sql_select = """SELECT 1 FROM produtos_individuais  AS pi 
-        JOIN status_produto AS s ON pi.id_status_produto = pi.id_status_produto
+        JOIN status_produto AS s ON pi.id_status_produto = s.id_status_produto
         WHERE pi.nu_patrimonio = %s AND s.descricao_status = %s"""
 
     with conn.cursor() as cur:
@@ -295,45 +295,74 @@ def validar_nuP_disponivel(conn, nu_patrimonio):
 
     return resultado[0] if resultado else None
 
-def validar_emprestimo(conn, emprestimo, quantidade):
-    if quantidade <= 0 and not isinstance(quantidade, int):
+
+def validar_nu_patrimonio(conn, nome, categoria, qtd):
+    if qtd <= 0 and not isinstance(qtd, int):
         raise ValueError ("Erro: quantidade inválida!")
     
-    if not validar_nu_patrimonio(conn, emprestimo.nu_patrimonio):
-        raise ValueError ("Erro: número do patrimônio inválido!")
+    num_patrimonio = buscar_nuP_validos_por_id_produto(conn, nome, categoria)
+
+    if not num_patrimonio:
+        raise ValueError ("Erro: não foi encontrado nenhum número do patrimônio inválido para esse produto!")
     
+    if len(num_patrimonio) < qtd:
+        raise ValueError ("Erro: a quantidade esse produto não foi encotrada!")
+    
+    pat_validos = []
+
+    for p in num_patrimonio:
+        if len(pat_validos) == qtd:
+            break
+
+        esta_ativo = validar_nu_patrimonio_ativo(conn, p)
+        if esta_ativo is not None:
+            esta_disponivel = validar_nuP_disponivel(conn, p)
+            if esta_disponivel is True:
+                pat_validos.append(p)
+
+    if len(pat_validos) < qtd:
+        return False, pat_validos
+    
+    return True, pat_validos
+
+def validar_emprestimo(conn, emprestimo, nu_patrimonio):
     id_disponibilidade = buscar_id_por_disponibilidade(conn, 'Emprestado')
     if not id_disponibilidade:
         raise ValueError ("Erro: disponibilidade inválida!")
     
+    emprestimo.nu_patrimonio = nu_patrimonio
     emprestimo.id_disponibilidade = id_disponibilidade
     emprestimo.data_emprestimo = emprestimo.agora()
     emprestimo.data_devolucao = emprestimo.converter_data_timestamp()
 
 
-def realizar_emprestimo(conn, emprestimo, qtd):
-    emprestimo.validar()
-    validar_emprestimo(conn, emprestimo, qtd)
-
+def realizar_emprestimo(conn, emprestimo, qtd, pat_validos):
     sql_insert = """INSERT INTO emprestimos(nu_patrimonio, id_disponibilidade, data_devolucao, nome_emprestimos, data_emprestimo) 
                     VALUES (%s, %s, %s, %s, %s);"""
-    
-    #sql_insert = "UPDATE status_disponibilidade_produto (descricao_disponibilidade) VALUES (%s)"
 
     if conn is None:
         raise ValueError("Erro com a conexão com o banco de dados.")
+    
+    emprestimo.validar()
 
+    for p in pat_validos:
+        validar_emprestimo(conn, emprestimo, p)
+
+        try:
+            with conn.cursor() as cur:
+                cur.execute(sql_insert, (
+                    emprestimo.nu_patrimonio, emprestimo.id_disponibilidade, emprestimo.data_devolucao,
+                    emprestimo.nome_emprestimo, emprestimo.data_emprestimo
+                    ))
+
+        except (Exception, psycopg2.Error) as e:
+            conn.rollback()
+            raise ValueError(f"Erro ao realizar empréstimo: {e}")
+        
     try:
-        with conn.cursor() as cur:
-            cur.execute(sql_insert, (
-                emprestimo.nu_patrimonio, emprestimo.id_disponibilidade, emprestimo.data_devolucao,
-                emprestimo.nome_emprestimo, emprestimo.data_emprestimo
-                ))
-            
-            inseridos = cur.rowcount
         conn.commit()
-        return True
-
+        return True, len(pat_validos)
     except (Exception, psycopg2.Error) as e:
-        conn.rollback()
-        raise ValueError(f"Erro ao realizar empréstimo: {e}")
+            conn.rollback()
+            raise ValueError(f"Erro ao confirmar transação de empréstimo: {e}")
+    

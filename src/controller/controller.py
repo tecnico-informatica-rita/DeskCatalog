@@ -118,8 +118,23 @@ class ControllerEmprestimo:
   def __init__(self, conn):
     self.conn = conn
 
-  def registrar_emprestimo(conn, emprestimo, produto):
-    pass
+  def fazer_emprestimo(self, emprestimo, nome, categoria, qtd):
+    qtd_banco, pat_validos = db.validar_nu_patrimonio(self.conn, nome, categoria, qtd)
+
+    if qtd_banco is True:
+      qtd_emprestada = qtd
+      pat_emprestados = pat_validos
+    else:
+      qtd_disponivel = len(pat_validos)
+      confirmacao =  'Função que a view vai retornar'
+      if confirmacao is True:
+        qtd_emprestada = qtd
+        pat_emprestados = pat_validos
+      else:
+        return {"status": "cancelado", "mensagem": "Empréstimo cancelado pelo usuário."}
+      
+    emprestado, qtd_emprestimos = db.realizar_emprestimo(self.conn, emprestimo, qtd_emprestada, pat_emprestados)
+    return {"status": "sucesso", "qtd_registrada": qtd_emprestimos}
 
 
     
