@@ -205,7 +205,7 @@ def alterar_nome(conn, novo_nome: str, produto):
 def alterar_categoria(conn, nova_categoria: str, produto):
     pass
 
-def criar_view_todos_produtos(conn):
+def criar_view_todos_produtos(conn): # consertar para transformar ela em histórico
     sql_select_view = """
         CREATE OR REPLACE VIEW vw_todos_produtos AS
         SELECT pi.nu_patrimonio, c.nome_categoria, n.nome_produto, s.descricao_status
@@ -226,6 +226,35 @@ def criar_view_todos_produtos(conn):
         return True
     except Exception as e:
         raise ValueError (f"Erro inesperado ao realizar query: {e}")
+    
+def criar_view_produtos_exibicao_qtdAtivos(conn):
+    sql_select_view = """
+        CREATE OR REPLACE VIEW vw_todos_produtos_qtdAtivos AS
+        SELECT c.nome_categoria, n.nome_produto, 
+		COUNT(pi.id_produto) AS total_produtos, 
+		COUNT(CASE WHEN s.descricao_status = 'Ativo' THEN 1 END) AS total_prod_ativos
+        FROM produtos_individuais AS pi 
+        JOIN nomes_produtos AS n ON n.id_produto = pi.id_produto
+        JOIN categorias_produto AS c ON c.id_categoria = n.id_categoria
+		JOIN status_produto AS s ON pi.id_status_produto = s.id_status_produto
+		GROUP BY c.nome_categoria, n.nome_produto
+        ORDER BY 
+        c.nome_categoria ASC,
+        n.nome_produto ASC;
+    """
+    try:
+        with conn.cursor() as cur:
+            cur.execute(sql_select_view,)
+        return True
+    except Exception as e:
+        raise ValueError (f"Erro inesperado ao realizar query: {e}")
+    
+def exibir_todos_produtos_qtdAtivos(conn):
+    with conn.cursor() as cur:
+        sql_select = "SELECT * FROM vw_todos_produtos_qtdAtivos"
+        cur.execute(sql_select)
+        rows = cur.fetchall()
+        return rows
     
 def exibir_todos_produtos(conn):
     with conn.cursor() as cur:
@@ -366,3 +395,22 @@ def realizar_emprestimo(conn, emprestimo, qtd, pat_validos):
             conn.rollback()
             raise ValueError(f"Erro ao confirmar transação de empréstimo: {e}")
     
+def buscar_produtos_emprestados(conn):
+    sql_select_view = """
+        SELECT 
+n.nome_produto, c.nome_categoria, d.descricao_disponibilidade, e.nome_emprestimos, e.data_emprestimo, e.data_devolucao 
+FROM emprestimos AS e
+JOIN produtos_individuais AS pi ON pi.nu_patrimonio = e.nu_patrimonio
+JOIN nomes_produtos AS n ON n.id_produto = pi.id_produto
+JOIN categorias_produto AS c ON c.id_categoria = n.id_categoria
+JOIN status_disponibilidade_produto AS d ON d.id_disponibilidade = e.id_disponibilidade
+    """
+    try:
+        with conn.cursor() as cur:
+            cur.execute(sql_select_view,)
+        return True
+    except Exception as e:
+        raise ValueError (f"Erro inesperado ao realizar query: {e}")
+    
+def realizar_devolucao(conn):
+    pass

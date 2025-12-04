@@ -138,7 +138,8 @@ class ControllerEmprestimo:
 
 
     
-
+  def fazer_devolucao(self,):
+    pass
 
 
     
