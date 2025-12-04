@@ -247,28 +247,62 @@ def buscar_id_por_disponibilidade(conn, nome_disponibilidade):
 
     return resultados[0] if resultados else None
 
-def validar_nu_patrimonio(conn, nu_patrimonio):
-    sql_select = "SELECT nu_patrimonio FROM produtos_individuais WHERE nu_patrimonio = %s"
+def buscar_nuP_validos_por_id_produto(conn, nome, categoria):
+
+    sql_select = """SELECT pi.nu_patrimonio FROM produtos_individuais AS pi
+        JOIN nomes_produtos AS n ON n.id_produto = pi.id_produto
+        JOIN categorias_produto AS c ON c.id_categoria = n.id_categoria
+        JOIN status_produto AS s ON s.id_status_produto = pi.id_status_produto
+        WHERE n.nome_produto = %s AND c.nome_categoria = %s
+    """
 
     with conn.cursor() as cur:
-        cur.execute(sql_select, (nu_patrimonio, ))
-        resultados = cur.fetchone()
+        cur.execute(sql_select, (nome, categoria ))
+        resultados = cur.fetchall()
 
-    return True if resultados else False
+    retorno = []
+    for tupla in resultados:
+        retorno.append(tupla[0])
 
-def buscar_nuP_validos_por_id_produto(conn, nome, categoria):
-    id_prod = buscar_id_por_nomeCategoria_produto(conn, nome, categoria)
+    return retorno
+
+def validar_nu_patrimonio(conn, nu_patrimonio):
+    status = 'Ativo'
+
+    sql_select = """SELECT 1 FROM produtos_individuais  AS pi 
+        JOIN status_produto AS s ON pi.id_status_produto = pi.id_status_produto
+        WHERE pi.nu_patrimonio = %s AND s.descricao_status = %s"""
+
+    with conn.cursor() as cur:
+        cur.execute(sql_select, (nu_patrimonio, status))
+        resultado = cur.fetchone()
+
+    return resultado if resultado else None
+
+def validar_nuP_disponivel(conn, nu_patrimonio):
+    disponibilidade = 'Disponível'
+
+    sql_select = """SELECT
+        NOT EXISTS (
+        SELECT 1
+        FROM emprestimos AS e
+        JOIN status_disponibilidade_produto AS s ON e.id_disponibilidade = s.id_disponibilidade
+        WHERE e.nu_patrimonio = %s AND s.descricao_disponibilidade <> %s) AS pat_valido; """
     
+    with conn.cursor() as cur:
+        cur.execute(sql_select, (nu_patrimonio, disponibilidade))
+        resultado = cur.fetchone()
+
+    return resultado[0] if resultado else None
 
 def validar_emprestimo(conn, emprestimo, quantidade):
     if quantidade <= 0 and not isinstance(quantidade, int):
         raise ValueError ("Erro: quantidade inválida!")
-    nu_patrimonio_valido = validar_nu_patrimonio(conn, emprestimo.nu_patrimonio)
-    id_disponibilidade = buscar_id_por_disponibilidade(conn, 'Emprestado')
-
-    if not nu_patrimonio_valido:
+    
+    if not validar_nu_patrimonio(conn, emprestimo.nu_patrimonio):
         raise ValueError ("Erro: número do patrimônio inválido!")
     
+    id_disponibilidade = buscar_id_por_disponibilidade(conn, 'Emprestado')
     if not id_disponibilidade:
         raise ValueError ("Erro: disponibilidade inválida!")
     
@@ -276,26 +310,30 @@ def validar_emprestimo(conn, emprestimo, quantidade):
     emprestimo.data_emprestimo = emprestimo.agora()
     emprestimo.data_devolucao = emprestimo.converter_data_timestamp()
 
-def realizar_emprestimo(conn, emprestimo):
+
+def realizar_emprestimo(conn, emprestimo, qtd):
     emprestimo.validar()
-    validar_emprestimo(conn, emprestimo)
+    validar_emprestimo(conn, emprestimo, qtd)
 
     sql_insert = """INSERT INTO emprestimos(nu_patrimonio, id_disponibilidade, data_devolucao, nome_emprestimos, data_emprestimo) 
                     VALUES (%s, %s, %s, %s, %s);"""
     
-    sql_insert = "INSERT INTO status_disponibilidade_produto (descricao_disponibilidade) VALUES (%s)"
+    #sql_insert = "UPDATE status_disponibilidade_produto (descricao_disponibilidade) VALUES (%s)"
 
     if conn is None:
         raise ValueError("Erro com a conexão com o banco de dados.")
 
     try:
         with conn.cursor() as cur:
-            cur.execute(sql_insert, )
+            cur.execute(sql_insert, (
+                emprestimo.nu_patrimonio, emprestimo.id_disponibilidade, emprestimo.data_devolucao,
+                emprestimo.nome_emprestimo, emprestimo.data_emprestimo
+                ))
             
             inseridos = cur.rowcount
         conn.commit()
-        return inseridos
+        return True
 
     except (Exception, psycopg2.Error) as e:
         conn.rollback()
-        raise ValueError (f"Erro ao inserir dados no PostgreSQL: {e}")
+        raise ValueError(f"Erro ao realizar empréstimo: {e}")
