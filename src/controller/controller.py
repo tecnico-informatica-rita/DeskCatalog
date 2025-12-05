@@ -12,12 +12,17 @@ import view.view as view
 import database.database_funcoes as db
 
 
-class ControllerProduto:
-  """Interliga o produto ao banco de dados e a view"""
+class ControllerDeskCatalog:
+  """Interliga o model ao banco de dados e a view"""
   
   def __init__(self, conn):
-    self.conn = conn
-
+        """Inicializa o controlador com os gerenciadores do modelo."""
+        self.conn = conn
+        self.view = view # Referência para o módulo da View
+        self.gerenciador_produto = model.GerenciadorProduto(conn)
+        self.gerenciador_emprestimo = model.GerenciarEmprestimo(conn)
+    
+'''
   #     FUNÇÕES DE VALIDAÇÃO
 
   def validar_nomeCategoria(self, produto):
@@ -128,7 +133,7 @@ class ControllerEmprestimo:
       qtd_disponivel = len(pat_validos)
       confirmacao =  'Função que a view vai retornar'
       if confirmacao is True:
-        qtd_emprestada = qtd
+        qtd_emprestada = qtd_disponivel
         pat_emprestados = pat_validos
       else:
         return {"status": "cancelado", "mensagem": "Empréstimo cancelado pelo usuário."}
@@ -140,7 +145,7 @@ class ControllerEmprestimo:
     
   def fazer_devolucao(self,):
     pass
-
+'''
 
     
     

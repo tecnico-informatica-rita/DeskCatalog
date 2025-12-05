@@ -89,7 +89,27 @@ class Emprestimo:
         )
         
         return self.tz.localize(data)
+    
+    def converter_data_string(self):
+        pass
         
     def agora(self):
         return dt.now(self.tz)
+    
+
+    # ==================== CLASSES DE ACESSO A DADOS (REPOSITÓRIO) ===========
+
+class GerenciadorProduto:
+    """Classe responsável por buscar dados sobre o produto no banco de dados."""
+    
+    def __init__(self, conn):
+        """Recebe uma conexão com o banco de dados."""
+        self.conn = conn
+
+class GerenciarEmprestimo:
+    """Classe responsável por buscar dados sobre o empréstimo no banco de dados."""
+    
+    def __init__(self, conn):
+        """Recebe uma conexão com o banco de dados."""
+        self.conn = conn
     
