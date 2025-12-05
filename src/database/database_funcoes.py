@@ -309,7 +309,7 @@ def validar_nu_patrimonio_ativo(conn, nu_patrimonio):
     return resultado if resultado else None
 
 def validar_nuP_disponivel(conn, nu_patrimonio):
-    disponibilidade = 'Disponível'
+    disponibilidade = 'Emprestado'
 
     sql_select = """SELECT
         NOT EXISTS (
@@ -397,15 +397,19 @@ def realizar_emprestimo(conn, emprestimo, qtd, pat_validos):
     
     #       DEVOLUÇÕES
     
-def buscar_produtos_emprestados_30(conn):
+def criar_view_produtos_emprestados_30_dias(conn):
     sql_select_view = """
-        SELECT 
-n.nome_produto, c.nome_categoria, d.descricao_disponibilidade, e.nome_emprestimos, e.data_emprestimo, e.data_devolucao 
-FROM emprestimos AS e
-JOIN produtos_individuais AS pi ON pi.nu_patrimonio = e.nu_patrimonio
-JOIN nomes_produtos AS n ON n.id_produto = pi.id_produto
-JOIN categorias_produto AS c ON c.id_categoria = n.id_categoria
-JOIN status_disponibilidade_produto AS d ON d.id_disponibilidade = e.id_disponibilidade
+        CREATE OR REPLACE VIEW vw_itens_para_devolucao_30 AS
+        SELECT n.nome_produto, e.nome_emprestimos, e.data_emprestimo, COUNT(e.nu_patrimonio) AS quantidade_emprestada
+        FROM emprestimos AS e
+        JOIN produtos_individuais AS pi ON pi.nu_patrimonio = e.nu_patrimonio
+        JOIN nomes_produtos AS n ON n.id_produto = pi.id_produto
+        JOIN status_disponibilidade_produto AS s ON s.id_disponibilidade = e.id_disponibilidade
+        WHERE
+            s.descricao_disponibilidade = 'Em atraso' 
+            OR (s.descricao_disponibilidade = 'Emprestado' AND e.data_emprestimo >= (CURRENT_DATE - INTERVAL '30 days'))
+        GROUP BY n.nome_produto, e.nome_emprestimos, e.data_emprestimo
+        ORDER BY e.data_emprestimo DESC;
     """
     try:
         with conn.cursor() as cur:
@@ -414,7 +418,58 @@ JOIN status_disponibilidade_produto AS d ON d.id_disponibilidade = e.id_disponib
     except Exception as e:
         raise ValueError (f"Erro inesperado ao realizar query: {e}")
     
-def buscar_historico_emprestados(conn):
+def criar_view_historico_emprestados(conn):
+    sql_select_view = """
+        CREATE OR REPLACE VIEW vw_historico_transacoes_emprestimos AS
+        SELECT n.nome_produto, e.nome_emprestimos, e.data_emprestimo, s.descricao_disponibilidade, COUNT(e.nu_patrimonio) AS quantidade_total
+        FROM emprestimos AS e
+        JOIN produtos_individuais AS pi ON pi.nu_patrimonio = e.nu_patrimonio
+        JOIN nomes_produtos AS n ON n.id_produto = pi.id_produto
+        JOIN status_disponibilidade_produto AS s ON s.id_disponibilidade = e.id_disponibilidade
+        GROUP BY n.nome_produto, e.nome_emprestimos, e.data_emprestimo, s.descricao_disponibilidade 
+        ORDER BY 
+        e.data_emprestimo DESC;
+    """
+    try:
+        with conn.cursor() as cur:
+            cur.execute(sql_select_view,)
+        return True
+    except Exception as e:
+        raise ValueError (f"Erro inesperado ao realizar query: {e}")
+    
+def exibir_itens_para_devolucao_30(conn):
+    with conn.cursor() as cur:
+        sql_select = "SELECT * FROM vw_itens_para_devolucao_30"
+        cur.execute(sql_select)
+        rows = cur.fetchall()
+        return rows
+    
+def exibir_historico_transacoes_emprestimos(conn):
+    with conn.cursor() as cur:
+        sql_select = "SELECT * FROM vw_historico_transacoes_emprestimos"
+        cur.execute(sql_select)
+        rows = cur.fetchall()
+        return rows
+
+def buscar_nuP_emprestimo(conn, nome, emprestimo):
+    sql_select_view = """
+        CREATE OR REPLACE VIEW vw_historico_transacoes_emprestimos AS
+        SELECT n.nome_produto, e.nome_emprestimos, e.data_emprestimo, s.descricao_disponibilidade, COUNT(e.nu_patrimonio) AS quantidade_total
+        FROM emprestimos AS e
+        JOIN produtos_individuais AS pi ON pi.nu_patrimonio = e.nu_patrimonio
+        JOIN nomes_produtos AS n ON n.id_produto = pi.id_produto
+        JOIN status_disponibilidade_produto AS s ON s.id_disponibilidade = e.id_disponibilidade
+        GROUP BY n.nome_produto, e.nome_emprestimos, e.data_emprestimo, s.descricao_disponibilidade 
+        ORDER BY 
+        e.data_emprestimo DESC;
+    """
+    try:
+        with conn.cursor() as cur:
+            cur.execute(sql_select_view,)
+        return True
+    except Exception as e:
+        raise ValueError (f"Erro inesperado ao realizar query: {e}")
+def validar_devolucao(conn, nome):
     pass
 def realizar_devolucao(conn):
     pass
