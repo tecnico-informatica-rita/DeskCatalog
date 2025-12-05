@@ -1,7 +1,7 @@
 # código para teste da função empréstimo
 
 import flet as ft
-from controller.controller import ControllerEmprestimo
+from controller.controller import ControllerDeskCatalog
 # Assumindo que você importou seu Controller e o objeto Emprestimo
 # from seu_modulo_controller import ControllerEmprestimo 
 # from seu_modulo_classes import Emprestimo 
@@ -171,7 +171,7 @@ def main(page: ft.Page):
     
     # SIMULAÇÃO: Inicialize sua conexão e seu Controller real aqui
     conn_mock = 'sua_conexao_db' 
-    controller = ControllerEmprestimo(conn_mock)
+    controller = ControllerDeskCatalog(conn_mock)
     
     # Adiciona a View à página
     page.add(EmprestimoView(page, controller))

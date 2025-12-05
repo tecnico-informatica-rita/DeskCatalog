@@ -35,7 +35,7 @@ def main():
         
         # 3. Instanciar e executar o controlador
         # O controlador recebe a conexão para passar aos seus gerenciadores
-        #app = controller.SistemaCinema(conn)
+        app = controller.ControllerDeskCatalog(conn)
         #app.run()
         
     except Exception as e:

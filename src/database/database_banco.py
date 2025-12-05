@@ -9,6 +9,8 @@ from config.config import DB_CONFIG
 
 ARQUIVO_CSV = 'produtosCerto.csv'
 
+    #   ================ CONEXÃO COM O BANCO ==============
+
 def get_db_connection():
     """Cria e retorna uma nova conexão com o banco de dados."""
     try:
@@ -18,6 +20,8 @@ def get_db_connection():
         print(f"❌ Erro fatal ao conectar ao PostgreSQL: {e}")
         print("Verifique suas credenciais em 'config.py' e se o servidor está rodando.")
         raise e
+
+    #   ================ CRIAÇÃO DAS TABELAS ==============
 
 def criar_tabelas(conn):
     """Cria as tabelas 'categorias_produto' e 'status_produto', 
@@ -99,6 +103,8 @@ def criar_tabelas(conn):
         conn.rollback()
 
 
+    #   ================ INSERÇÕES NO BANCO ==============
+
 def inserir_categorias_produto(conn):
     categorias = [
     ('Mobiliário',),
@@ -175,7 +181,8 @@ def inserir_status_disponibilidade_produto(conn):
     except (Exception, psycopg2.Error) as e:
         raise ValueError (f"Erro ao inserir dados no PostgreSQL: {e}")
     
-#       INSERIR OS PRODUTOS ATRAVÉS DE UM ARQUIVO CSV
+        #       INSERIR OS PRODUTOS ATRAVÉS DE UM ARQUIVO CSV
+
 id_categoria = {}
 id_status = {}
 
@@ -212,8 +219,6 @@ def get_id_status(conn, status):
         id_status[status] = resultados[0]
         return resultados[0]
     return None
-
-#       INSERIR POR MEIO DE ARQUIVO
 
 def inserir_nomes_produtos_e_individuais(conn):
 
@@ -257,6 +262,58 @@ def inserir_nomes_produtos_e_individuais(conn):
     except (Exception, psycopg2.Error) as e:
         raise ValueError (f"Erro ao inserir dados no PostgreSQL: {e}")
     
+
+    #   ================ CRIAÇÃO DAS VIEWS ===========================
+
+def criar_view_todos_produtos(conn): # consertar para transformar ela em histórico
+    sql_select_view = """
+        CREATE OR REPLACE VIEW vw_todos_produtos AS
+        SELECT pi.nu_patrimonio, c.nome_categoria, n.nome_produto, s.descricao_status
+        FROM produtos_individuais AS pi 
+        JOIN nomes_produtos AS n ON n.id_produto = pi.id_produto
+        JOIN categorias_produto AS c ON c.id_categoria = n.id_categoria
+
+        JOIN status_produto AS s ON s.id_status_produto = pi.id_status_produto
+
+        ORDER BY 
+        c.nome_categoria ASC,
+        n.nome_produto ASC,
+        pi.nu_patrimonio DESC
+    """
+    try:
+        with conn.cursor() as cur:
+            cur.execute(sql_select_view,)
+        return True
+    except Exception as e:
+        raise ValueError (f"Erro inesperado ao realizar query: {e}")
+    
+def criar_view_produtos_exibicao_qtdAtivos(conn):
+    sql_select_view = """
+        CREATE OR REPLACE VIEW vw_todos_produtos_qtdAtivos AS
+        SELECT c.nome_categoria, n.nome_produto, 
+		COUNT(pi.id_produto) AS total_produtos, 
+		COUNT(CASE WHEN s.descricao_status = 'Ativo' THEN 1 END) AS total_prod_ativos
+        FROM produtos_individuais AS pi 
+        JOIN nomes_produtos AS n ON n.id_produto = pi.id_produto
+        JOIN categorias_produto AS c ON c.id_categoria = n.id_categoria
+		JOIN status_produto AS s ON pi.id_status_produto = s.id_status_produto
+		GROUP BY c.nome_categoria, n.nome_produto
+        ORDER BY 
+        c.nome_categoria ASC,
+        n.nome_produto ASC;
+    """
+    try:
+        with conn.cursor() as cur:
+            cur.execute(sql_select_view,)
+        return True
+    except Exception as e:
+        raise ValueError (f"Erro inesperado ao realizar query: {e}")
+    
+def criar_todas_views(conn):
+    pass
+
+    #   ================ POPULA O BANCO E CRIA AS VIEW ==============
+
 def popular_dados_padrao(conn):
     """Popula o banco com dados iniciais se estiver vazio."""
     try:
@@ -278,6 +335,8 @@ def popular_dados_padrao(conn):
     except Exception as e:
         print(f"❌ Erro ao popular dados padrão: {e}")
         conn.rollback()
+
+
 
 def popular_dados_padrao(conn):
     """Popula o banco com dados iniciais se estiver vazio."""

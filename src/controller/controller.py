@@ -16,14 +16,15 @@ class ControllerDeskCatalog:
   """Interliga o model ao banco de dados e a view"""
   
   def __init__(self, conn):
-        """Inicializa o controlador com os gerenciadores do modelo."""
-        self.conn = conn
-        self.view = view # Referência para o módulo da View
-        self.gerenciador_produto = model.GerenciadorProduto(conn)
-        self.gerenciador_emprestimo = model.GerenciarEmprestimo(conn)
+      """Inicializa o controlador com os gerenciadores do modelo."""
+      self.conn = conn
+      self.view = view # Referência para o módulo da View
+      self.gerenciador_produto = model.GerenciadorProduto(conn)
+      self.gerenciador_emprestimo = model.GerenciarEmprestimo(conn)
+      self.gerenciador_alteracoes = model.GerenciarAlteracoes(conn)
     
-'''
-  #     FUNÇÕES DE VALIDAÇÃO
+
+  # ==================== FUNÇÕES DE VALIDAÇÃO (LÓGICA DO CONTROLE) ====================
 
   def validar_nomeCategoria(self, produto):
     id_prod = db.buscar_id_por_nomeCategoria_produto(self.conn, produto.nome, produto.categoria)
@@ -44,7 +45,7 @@ class ControllerDeskCatalog:
     return id_categoria
 
 
-  #     FUNÇÕES DO MENU
+  # ==================== FUNÇÕES DE PROCESSAMENTO (AÇÕES DO MENU) ====================
 
   def adicionar_produto_existente(self, produto: model.Produto) -> bool:
     # Validação do produto antes de inserir
@@ -117,12 +118,6 @@ class ControllerDeskCatalog:
 
 #       REALIZANDO EMPRÉSTIMOS
 
-class ControllerEmprestimo:
-  """Interliga o produto ao banco de dados e a view"""
-
-  def __init__(self, conn):
-    self.conn = conn
-
   def fazer_emprestimo(self, emprestimo, nome, categoria, qtd):
     qtd_banco, pat_validos = db.validar_nu_patrimonio(self.conn, nome, categoria, qtd)
 
@@ -145,9 +140,12 @@ class ControllerEmprestimo:
     
   def fazer_devolucao(self,):
     pass
-'''
 
-    
+  # ==================== LOOP PRINCIPAL DA APLICAÇÃO ====================
+
+  def run(self):
+    """Função principal que executa o sistema."""
+    pass
     
     
 
