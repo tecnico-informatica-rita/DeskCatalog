@@ -13,11 +13,13 @@ Responsabilidades:
 6. Gerenciar o fechamento da conexão com o banco.
 """
 
+import flet as ft
 import database.database_banco as database   # Para setup e conexão
 import controller.controller as controller   # O cérebro da aplicação
+from view_cadastro import pagina_produtos
 import sys            # Para encerrar o programa em caso de erro de DB
 
-def main():
+def main(page: ft.Page):
     """Função principal que configura e executa o sistema."""
     
     conn = None
@@ -36,6 +38,7 @@ def main():
         # 3. Instanciar e executar o controlador
         # O controlador recebe a conexão para passar aos seus gerenciadores
         app = controller.ControllerDeskCatalog(conn)
+        page.add(pagina_produtos(app, page))
         #app.run()
         
     except Exception as e:
@@ -47,5 +50,7 @@ def main():
             conn.close()
             print("ℹ️  Conexão com o banco de dados fechada.")
 
-if __name__ == "__main__":
-    main()
+#if __name__ == "__main__":
+    #main()
+
+ft.app(target=main)

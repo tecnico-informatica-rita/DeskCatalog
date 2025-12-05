@@ -8,7 +8,7 @@ Camada Controller (Controle):
 """
 
 import model.model_deskcatalog as model
-import view.view as view
+import view_cadastro as view
 import database.database_funcoes as db
 
 
@@ -113,9 +113,23 @@ class ControllerDeskCatalog:
       }
       lista.append(resultado_dict)
 
-      return lista
+    return lista
     
+  def exibir_todosP_qtd(self, ):
+    resultados = self.gerenciador_produto.exibir_todos_produtos_qtdAtivos(self.conn)
 
+    lista = []
+    for i in resultados:
+      resultado_dict = {
+        'categoria': i[0],
+        'nome': i[1],
+        'total_produtos': i[2],
+        'total_ativo': i[3]
+      }
+      lista.append(resultado_dict)
+
+    return lista
+    
 #       REALIZANDO EMPRÉSTIMOS
 
   def fazer_emprestimo(self, emprestimo, nome, categoria, qtd):

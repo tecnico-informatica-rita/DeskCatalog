@@ -285,6 +285,7 @@ def criar_view_todos_produtos(conn): # consertar para transformar ela em histór
             cur.execute(sql_select_view,)
         return True
     except Exception as e:
+        print(f"\n❌ [ERRO SQL REAL] Falha ao criar vw_todos_produtos. Mensagem: {e}")
         raise ValueError (f"Erro inesperado ao realizar query: {e}")
     
 def criar_view_produtos_exibicao_qtdAtivos(conn):
@@ -307,10 +308,12 @@ def criar_view_produtos_exibicao_qtdAtivos(conn):
             cur.execute(sql_select_view,)
         return True
     except Exception as e:
+        print(f"\n❌ [ERRO SQL REAL] Falha ao criar vw_todos_produtos. Mensagem: {e}")
         raise ValueError (f"Erro inesperado ao realizar query: {e}")
     
 def criar_todas_views(conn):
-    pass
+    criar_view_produtos_exibicao_qtdAtivos(conn)
+    criar_view_todos_produtos(conn)
 
     #   ================ POPULA O BANCO E CRIA AS VIEW ==============
 
@@ -330,35 +333,14 @@ def popular_dados_padrao(conn):
             inserir_status_disponibilidade_produto(conn)
             inserir_nomes_produtos_e_individuais(conn)
             conn.commit()
+            print("✅ Dados padrão inseridos.")
+
+            # Depois crie as views
+            criar_todas_views(conn)
+            conn.commit() # Commit para salvar a criação da view (se necessário)
+            print("✅ Views criadas com sucesso.")
         print("✅ Banco de dados populado com dados padrão.")
             
     except Exception as e:
         print(f"❌ Erro ao popular dados padrão: {e}")
-        conn.rollback()
-
-
-
-def popular_dados_padrao(conn):
-    """Popula o banco com dados iniciais se estiver vazio."""
-    
-    try:
-        with conn.cursor() as cursor:
-            cursor.execute("SELECT COUNT(*) FROM produtos_individuais")
-            if cursor.fetchone()[0] > 0:
-                print("ℹ️  Banco de dados já populado. Nenhuma ação de popular foi realizada.")
-                return 
-    except Exception as e:
-        print(f"❌ Erro na checagem inicial da tabela 'produtos': {e}")
-        return
-
-    try:
-        inserir_categorias_produto(conn)
-        inserir_status_produto(conn)
-        inserir_status_disponibilidade_produto(conn)
-        inserir_nomes_produtos_e_individuais(conn)
-        conn.commit()
-        print("✅ Banco de dados populado com dados padrão e commit realizado.")
-            
-    except Exception as e:
-        print(f"❌ Erro ao popular dados padrão. Rollback iniciado. Motivo: {e}")
         conn.rollback()

@@ -18,7 +18,7 @@ class Produto:
     """Classe que representa um produto no sistema do catálogo"""
 
     """Recebe da view em string e depois para inserir no banco converte para o id"""
-    def __init__(self, nome: str, categoria: str, quantidade: int, status: str):
+    def __init__(self, nome: str, categoria: str, quantidade: str, status: str):
         self.nome = nome.strip().title()
         self.categoria = categoria.strip().title()
         self.quantidade = quantidade
@@ -28,8 +28,12 @@ class Produto:
         self.id_status = None
 
     def validar(self):
-        if self.quantidade <= 0 or not isinstance(self.quantidade, int):
-            raise ValueError ("Quantidade inválida!\n")
+        try:
+            self.quantidade = int(self.quantidade)
+            if self.quantidade <= 0:
+                raise ValueError("Quantidade inválida!\n")
+        except:
+            raise ValueError("Quantidade deve ser um número inteiro!\n")
         if not self.nome or not self.nome.strip():
             raise ValueError ("Nome inválido!\n")
         if not self.categoria or not self.categoria.strip():
