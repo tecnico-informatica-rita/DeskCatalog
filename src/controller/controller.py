@@ -27,19 +27,19 @@ class ControllerDeskCatalog:
   # ==================== FUNÇÕES DE VALIDAÇÃO (LÓGICA DO CONTROLE) ====================
 
   def validar_nomeCategoria(self, produto):
-    id_prod = db.buscar_id_por_nomeCategoria_produto(self.conn, produto.nome, produto.categoria)
+    id_prod = self.gerenciador_produto.buscar_id_por_nomeCategoria_produto(self.conn, produto.nome, produto.categoria)
     if not id_prod:
       raise ValueError ("Esse item não existe no catálogo.")
     return id_prod
   
   def validar_status(self, produto):
-    id_status = db.buscar_id_por_status(self.conn, produto.status)
+    id_status = self.gerenciador_produto.buscar_id_por_status(self.conn, produto.status)
     if not id_status:
       raise ValueError ("Esse status não existe no catálogo.")
     return id_status
   
   def validar_categoria(self, produto):
-    id_categoria = db.buscar_id_por_categoria(self.conn, produto.categoria)
+    id_categoria = self.gerenciador_produto.buscar_id_por_categoria(self.conn, produto.categoria)
     if not id_categoria:
       raise ValueError ("Essa categoria não existe no catálogo.")
     return id_categoria
@@ -101,7 +101,7 @@ class ControllerDeskCatalog:
 
 
   def exibir_todos_produtos(self,):
-    resultados = db.exibir_todos_produtos(self.conn)
+    resultados = self.gerenciador_produto.exibir_todos_produtos(self.conn)
 
     lista = []
     for i in resultados:
@@ -119,7 +119,7 @@ class ControllerDeskCatalog:
 #       REALIZANDO EMPRÉSTIMOS
 
   def fazer_emprestimo(self, emprestimo, nome, categoria, qtd):
-    qtd_banco, pat_validos = db.validar_nu_patrimonio(self.conn, nome, categoria, qtd)
+    qtd_banco, pat_validos = self.gerenciador_emprestimo.validar_nu_patrimonio(self.conn, nome, categoria, qtd)
 
     if qtd_banco is True:
       qtd_emprestada = qtd
@@ -133,7 +133,7 @@ class ControllerDeskCatalog:
       else:
         return {"status": "cancelado", "mensagem": "Empréstimo cancelado pelo usuário."}
       
-    emprestado, qtd_emprestimos = db.realizar_emprestimo(self.conn, emprestimo, qtd_emprestada, pat_emprestados)
+    emprestado, qtd_emprestimos = self.gerenciador_emprestimo.realizar_emprestimo(self.conn, emprestimo, qtd_emprestada, pat_emprestados)
     return {"status": "sucesso", "qtd_registrada": qtd_emprestimos}
 
 
