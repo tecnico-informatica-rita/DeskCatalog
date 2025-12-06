@@ -513,3 +513,47 @@ class GerenciarAlteracoes:
 
     def alterar_categoria(conn, nova_categoria: str, produto):
         pass
+
+
+class GerenciarGraficos:
+    """Classe responsável por buscar dados para gerar gráficos na view."""
+    
+    def __init__(self, conn):
+        """Recebe uma conexão com o banco de dados."""
+        self.conn = conn
+
+    def grafico_comparacao_ativos_inativos(self):
+        sql_select = "SELECT * FROM vw_grafico_AtivoInativo"
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute(sql_select)
+                row = cur.fetchone()
+                return {"Ativos": row[0] or 0, "Inativos": row[1] or 0}
+        except Exception as e:
+            raise ValueError (f"Erro inesperado ao realizar query: {e}")
+        
+    def grafico_empCatDiarios(self):
+        sql_select = "SELECT * FROM vw_grafico_empCatDia"
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute(sql_select)
+                row = cur.fetchone()
+                return {"Categoria": row[0] or 0, "Qtd": row[1] or 0}
+        except Exception as e:
+            raise ValueError (f"Erro inesperado ao realizar query: {e}")
+        
+    def grafico_itens_pendentesCat(self):
+        sql_select = "SELECT * FROM vw_grafico_itenspencat"
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute(sql_select)
+                row = cur.fetchone()
+                return {"Categoria": row[0] or 0, "Qtd": row[1] or 0}
+        except Exception as e:
+            raise ValueError (f"Erro inesperado ao realizar query: {e}")
+
+    def atualizar_grafico(self):
+        pass
+
+    def atualizar_grafico_tempo(self):
+        pass

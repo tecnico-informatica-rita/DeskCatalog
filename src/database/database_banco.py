@@ -285,7 +285,6 @@ def criar_view_todos_produtos(conn): # consertar para transformar ela em histór
             cur.execute(sql_select_view,)
         return True
     except Exception as e:
-        print(f"\n❌ [ERRO SQL REAL] Falha ao criar vw_todos_produtos. Mensagem: {e}")
         raise ValueError (f"Erro inesperado ao realizar query: {e}")
     
 def criar_view_produtos_exibicao_qtdAtivos(conn):
@@ -308,12 +307,69 @@ def criar_view_produtos_exibicao_qtdAtivos(conn):
             cur.execute(sql_select_view,)
         return True
     except Exception as e:
-        print(f"\n❌ [ERRO SQL REAL] Falha ao criar vw_todos_produtos. Mensagem: {e}")
         raise ValueError (f"Erro inesperado ao realizar query: {e}")
     
+def view_grafico_comparacao_ativos_inativos(conn):
+        sql_select_view = """
+        CREATE OR REPLACE VIEW vw_grafico_AtivoInativo AS
+        SELECT 
+            SUM(CASE WHEN s.descricao_status = 'Ativo' THEN 1 END) AS produtos_ativos,
+		    SUM(CASE WHEN s.descricao_status <> 'Ativo' THEN 1 END) AS produtos_inativos,
+            FROM produtos_individuais AS pi
+            JOIN status_produto AS s ON pi.id_status_produto = s.id_status_produto
+    """
+        try:
+            with conn.cursor() as cur:
+                cur.execute(sql_select_view,)
+            return True
+        except Exception as e:
+            raise ValueError (f"Erro inesperado ao realizar query: {e}")
+
+def view_grafico_emprestimoCat_diarios(conn):
+        sql_select_view = """
+        CREATE OR REPLACE VIEW vw_grafico_empCatDia AS
+        SELECT c.nome_categoria, COUNT(*) AS emprestimos_ativos
+        FROM emprestimos AS e
+        JOIN produtos_individuais AS pi ON pi.nu_patrimonio = e.nu_patrimonio
+        JOIN nomes_produtos AS n ON n.id_produto = pi.id_produto
+        JOIN categorias_produto AS c ON c.id_categoria = n.id_categoria
+        WHERE CURRENT_DATE BETWEEN e.data_emprestimo AND e.data_devolucao
+        GROUP BY c.nome_categoria
+        ORDER BY emprestimos_ativos DESC;
+    """
+        try:
+            with conn.cursor() as cur:
+                cur.execute(sql_select_view,)
+            return True
+        except Exception as e:
+            raise ValueError (f"Erro inesperado ao realizar query: {e}")
+        
+def view_grafico_itensPenCat(conn):
+        sql_select_view = """
+            REATE OR REPLACE VIEW vw_grafico_itensPenCat AS
+            SELECT c.nome_categoria,
+            COALESCE(SUM(CASE WHEN s.descricao_status <> 'Ativo' AND CURRENT_DATE BETWEEN e.data_emprestimo AND e.data_devolucao THEN 1 ELSE 0 END), 0) AS itens_pendentes
+            FROM categorias_produto AS c
+            LEFT JOIN nomes_produtos AS n ON n.id_categoria = c.id_categoria
+            LEFT JOIN produtos_individuais AS pi ON pi.id_produto = n.id_produto
+            LEFT JOIN emprestimos AS e ON pi.nu_patrimonio = e.nu_patrimonio
+            LEFT JOIN status_produto AS s ON s.id_status_produto = pi.id_status_produto
+            GROUP BY c.nome_categoria
+            ORDER BY c.nome_categoria;
+    """
+        try:
+            with conn.cursor() as cur:
+                cur.execute(sql_select_view,)
+            return True
+        except Exception as e:
+            raise ValueError (f"Erro inesperado ao realizar query: {e}")
+        
 def criar_todas_views(conn):
     criar_view_produtos_exibicao_qtdAtivos(conn)
     criar_view_todos_produtos(conn)
+    view_grafico_comparacao_ativos_inativos(conn)
+    view_grafico_emprestimoCat_diarios(conn)
+    view_grafico_itensPenCat(conn)
 
     #   ================ POPULA O BANCO E CRIA AS VIEW ==============
 
