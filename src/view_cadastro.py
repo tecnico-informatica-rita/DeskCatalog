@@ -1,4 +1,4 @@
-# código para teste da função empréstimo
+# código para teste da função cadastro
 
 import flet as ft
 #from controller.controller import ControllerDeskCatalog
@@ -73,83 +73,6 @@ def pagina_produtos(controller, page):
         
         page.update()
 
-    '''def cadastrar_produto(e):
-        try:
-            nome = nome_produto.value if nome_produto.visible else search_input.value
-            prod = Produto(
-                nome=nome_produto.value if nome_produto.visible else search_input.value,
-                categoria=combo_categoria.value,
-                quantidade=campo_qtd.value, 
-                status=combo_status.value
-            )
-            print("🛠 Produto criado na view:", prod.__dict__)
-
-            mensagem = controller.adicionar_produto(prod)
-
-            # Atualiza lista de nomes apenas se for novo
-            if prod.nome not in nomes_existentes:
-                nomes_existentes.append(prod.nome)
-
-            carregar_tabela()
-            page.snack_bar = ft.SnackBar(ft.Text(mensagem), bgcolor="green")
-            page.snack_bar.open = True
-
-            # (Opcional) limpar os campos:
-            nome_produto.value = ""
-            search_input.value = ""
-            campo_qtd.value = ""
-            combo_categoria.value = None
-            combo_status.value = None
-
-        except Exception as erro:
-            print("⚠ ERRO AO CADASTRAR:", erro)
-            page.snack_bar = ft.SnackBar(ft.Text(f"⚠ Erro: {erro}"), bgcolor="red")
-            page.snack_bar.open = True
-
-        page.update()
-    
-    def cadastrar_produto(e):
-        try:
-        nome = nome_produto.value if nome_produto.visible else search_input.value
-        prod = Produto(
-            nome=nome,
-            categoria=combo_categoria.value,
-            quantidade=campo_qtd.value,
-            status=combo_status.value
-        )
-
-        print("🛠 Produto criado na view:", prod.__dict__)
-
-        mensagem = controller.adicionar_produto(prod)
-
-        # Atualiza lista de nomes apenas se for novo
-        if prod.nome not in nomes_existentes:
-            nomes_existentes.append(prod.nome)
-
-        carregar_tabela()
-
-        # MOSTRAR SNACKBAR DE SUCESSO
-        snackbar = ft.SnackBar(ft.Text(mensagem), bgcolor="green")
-        page.overlay.append(snackbar)
-        snackbar.open = True
-
-        # Limpar os campos
-        nome_produto.value = ""
-        search_input.value = ""
-        campo_qtd.value = ""
-        combo_categoria.value = None
-        combo_status.value = None
-
-        except Exception as erro:
-            print("⚠ ERRO AO CADASTRAR:", erro)
-
-            # MOSTRAR SNACKBAR DE ERRO
-            snackbar = ft.SnackBar(ft.Text(f"⚠ Erro: {erro}"), bgcolor="red")
-            page.overlay.append(snackbar)
-            snackbar.open = True
-
-    page.update()'''
-
     def cadastrar_produto(e):
         try:
             nome = nome_produto.value if nome_produto.visible else search_input.value
@@ -181,14 +104,15 @@ def pagina_produtos(controller, page):
             page.overlay.append(snackbar)
             snackbar.open = True
 
-            # ====== LIMPAR CAMPOS ======
+            '''# ====== LIMPAR CAMPOS ======
             nome_produto.value = ""
             search_input.value = ""
             campo_qtd.value = ""
             combo_categoria.value = None
             combo_status.value = None
             nome_produto.visible = False  
-            autocomplete.controls.clear()
+            autocomplete.controls.clear()'''
+           
 
         except ValueError as erro:
             if hasattr(erro, "args") and erro.args:
@@ -202,7 +126,22 @@ def pagina_produtos(controller, page):
             snackbar = ft.SnackBar(ft.Text(f"⚠ {texto}"), bgcolor="red")
             page.overlay.append(snackbar)
             snackbar.open = True
-        page.update()
+
+        finally:
+             # ====== LIMPAR CAMPOS ======
+            nome_produto.value = ""
+            search_input.value = ""
+            campo_qtd.value = ""
+
+            # Limpa os Dropdowns
+            combo_categoria.value = None
+            combo_status.value = None
+            combo_categoria.update()
+            combo_status.update()
+
+            nome_produto.visible = False  
+            autocomplete.controls.clear()
+            page.update()
 
 
     # ========== LAYOUT ==========
