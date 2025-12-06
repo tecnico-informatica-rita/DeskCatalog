@@ -19,10 +19,10 @@ class Produto:
 
     """Recebe da view em string e depois para inserir no banco converte para o id"""
     def __init__(self, nome: str, categoria: str, quantidade: str, status: str):
-        self.nome = nome.strip().title()
-        self.categoria = categoria.strip().title()
+        self.nome = nome.strip()
+        self.categoria = categoria.strip()
         self.quantidade = quantidade
-        self.status = status.strip().title()
+        self.status = status.strip()
         self.nu_patrimonio = None
         self.id_produto = None
         self.id_status = None
@@ -116,10 +116,10 @@ class GerenciadorProduto:
         """Recebe uma conexão com o banco de dados."""
         self.conn = conn
 
-    def buscar_nomes_produtos_existentes(self, conn) -> list:
+    def buscar_nomes_produtos_existentes(self) -> list:
         sql_select = """SELECT nome_produto FROM nomes_produtos"""
 
-        with conn.cursor() as cur:
+        with self.conn.cursor() as cur:
             cur.execute(sql_select)
             resultados = cur.fetchall()
 
@@ -129,10 +129,10 @@ class GerenciadorProduto:
 
         return retorno
 
-    def buscar_nome_categorias(self, conn) -> list:
+    def buscar_nome_categorias(self) -> list:
         sql_select = """SELECT nome_categoria FROM categorias_produto"""
 
-        with conn.cursor() as cur:
+        with self.conn.cursor() as cur:
             cur.execute(sql_select)
             resultados = cur.fetchall()
 
@@ -142,10 +142,10 @@ class GerenciadorProduto:
 
         return retorno
 
-    def buscar_status(self, conn) -> list:
+    def buscar_status(self) -> list:
         sql_select = """SELECT descricao_status FROM status_produto"""
 
-        with conn.cursor() as cur:
+        with self.conn.cursor() as cur:
             cur.execute(sql_select)
             resultados = cur.fetchall()
 
@@ -155,39 +155,39 @@ class GerenciadorProduto:
 
         return retorno
 
-    def buscar_id_por_nomeCategoria_produto(self, conn, nome, categoria) -> int:
-        sql_select = "SELECT * FROM nomes_produtos WHERE nome_produto = %s AND id_categoria = %s;"
+    def buscar_id_por_nomeCategoria_produto(self, nome, categoria) -> int:
+        sql_select = "SELECT * FROM nomes_produtos WHERE LOWER(nome_produto) = LOWER(%s) AND id_categoria = %s;"
 
-        id_categoria = self.buscar_id_por_categoria(conn, categoria)
-        with conn.cursor() as cur:
+        id_categoria = self.buscar_id_por_categoria(categoria)
+        with self.conn.cursor() as cur:
             cur.execute(sql_select, (nome, id_categoria, ))
             resultados = cur.fetchone()
 
         return resultados[0] if resultados else None
 
-    def buscar_id_por_categoria(self, conn, categoria) -> int:
-        sql_select = "SELECT id_categoria FROM categorias_produto WHERE nome_categoria = %s;"
+    def buscar_id_por_categoria(self, categoria) -> int:
+        sql_select = "SELECT id_categoria FROM categorias_produto WHERE LOWER(nome_categoria) = LOWER(%s);"
 
-        with conn.cursor() as cur:
+        with self.conn.cursor() as cur:
             cur.execute(sql_select, (categoria, ))
             resultados = cur.fetchone()
 
         return resultados[0] if resultados else None
     
-    def buscar_id_por_status(self, conn, status) -> int:
+    def buscar_id_por_status(self, status) -> int:
         sql_select = "SELECT id_status_produto FROM status_produto WHERE descricao_status = %s;"
 
-        with conn.cursor() as cur:
+        with self.conn.cursor() as cur:
             cur.execute(sql_select, (status, ))
             resultados = cur.fetchone()
 
         return resultados[0] if resultados else None
 
-    def buscar_status_e_quantidade_por_produto(self, conn, produto):
-        id_prod = self.buscar_id_por_nomeCategoria_produto(conn, produto.nome, produto.categoria)
+    def buscar_status_e_quantidade_por_produto(self, produto):
+        id_prod = self.buscar_id_por_nomeCategoria_produto(produto.nome, produto.categoria)
         sql_select = "SELECT id_status_produto, COUNT(*) FROM produtos_individuais WHERE id_produto = %s GROUP BY id_status_produto;"
 
-        with conn.cursor() as cur:
+        with self.conn.cursor() as cur:
             cur.execute(sql_select, (id_prod, ))
             resultados = cur.fetchall()
 
@@ -198,43 +198,37 @@ class GerenciadorProduto:
             retorno.append(dicio)
         return retorno if retorno else None
 
-    def inserir_produto(self, conn, produto) -> bool:
+    def inserir_produto(self, produto) -> bool:
         sql_insert = "INSERT INTO produtos_individuais(id_produto, id_status_produto) VALUES (%s, %s)"
 
         try:
-            with conn.cursor() as cur:
+            with self.conn.cursor() as cur:
                 cur.execute(sql_insert, (produto.id_produto, produto.id_status))
                 return True
         except ErroPsycopg2:
             raise ValueError ("Erro ao adicionar produto!")
-        except Exception:
-            raise ValueError ("Erro inesperado ao adicionar produto!")
+        except Exception as e:
+            raise ValueError (f"Erro inesperado ao adicionar produto: {e}")
     
-    def inserir_varios_produtos_iguais(self, conn, produto) -> bool:
+    def inserir_varios_produtos_iguais(self, produto) -> bool:
         try:
-            conn.autocommit = False
-
-            for _ in range(produto.quantidade):
-                self.inserir_produto(conn, produto)
-
-            conn.commit()
+            with self.conn:  # inicia e controla a transação automaticamente
+                for _ in range(produto.quantidade):
+                    self.inserir_produto(produto)
             return True
 
-        except Exception:
-            conn.rollback()
-            raise ValueError("Erro ao adicionar produtos.\n")
-        finally:
-            conn.autocommit = True
+        except Exception as e:
+            raise ValueError(f"Erro ao adicionar produtos: {e}")
 
-    def exibir_todos_produtos_qtdAtivos(self, conn):
-        with conn.cursor() as cur:
+    def exibir_todos_produtos_qtdAtivos(self):
+        with self.conn.cursor() as cur:
             sql_select = "SELECT * FROM vw_todos_produtos_qtdAtivos"
             cur.execute(sql_select)
             rows = cur.fetchall()
             return rows
     
-    def exibir_todos_produtos(self, conn):
-        with conn.cursor() as cur:
+    def exibir_todos_produtos(self):
+        with self.conn.cursor() as cur:
             sql_select = "SELECT * FROM vw_todos_produtos"
             cur.execute(sql_select)
             rows = cur.fetchall()

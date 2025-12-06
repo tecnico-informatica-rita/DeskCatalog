@@ -7,9 +7,9 @@ from model.model_deskcatalog import Produto
 def pagina_produtos(controller, page):
 
     # ----- BUSCAS INICIAIS -----
-    categorias = controller.gerenciador_produto.buscar_nome_categorias(controller.conn)
-    status_lista = controller.gerenciador_produto.buscar_status(controller.conn)
-    nomes_existentes = controller.gerenciador_produto.buscar_nomes_produtos_existentes(controller.conn)
+    categorias = controller.gerenciador_produto.buscar_nome_categorias()
+    status_lista = controller.gerenciador_produto.buscar_status()
+    nomes_existentes = controller.gerenciador_produto.buscar_nomes_produtos_existentes()
 
     # ========== COMPONENTES ==========
 

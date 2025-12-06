@@ -9,7 +9,7 @@ Camada Controller (Controle):
 
 import model.model_deskcatalog as model
 import view_cadastro as view
-import database.database_funcoes as db
+import database.database_banco as db
 
 
 class ControllerDeskCatalog:
@@ -27,22 +27,29 @@ class ControllerDeskCatalog:
   # ==================== FUNÇÕES DE VALIDAÇÃO (LÓGICA DO CONTROLE) ====================
 
   def validar_nomeCategoria(self, produto):
-    id_prod = self.gerenciador_produto.buscar_id_por_nomeCategoria_produto(self.conn, produto.nome, produto.categoria)
-    if not id_prod:
-      raise ValueError ("Esse item não existe no catálogo.")
-    return id_prod
+    try:
+      id_prod = self.gerenciador_produto.buscar_id_por_nomeCategoria_produto(produto.nome, produto.categoria)
+      return id_prod
+    except Exception as e:
+      raise ValueError (f"Erro inesperado durante a busca pelo produto válido: {e}")
   
   def validar_status(self, produto):
-    id_status = self.gerenciador_produto.buscar_id_por_status(self.conn, produto.status)
-    if not id_status:
-      raise ValueError ("Esse status não existe no catálogo.")
-    return id_status
+    try:
+      id_status = self.gerenciador_produto.buscar_id_por_status(produto.status)
+      if not id_status:
+        raise ValueError ("Esse status não existe no catálogo.")
+      return id_status
+    except Exception as e:
+      raise ValueError (f"Erro inesperado durante a busca pelo status: {e}")
   
   def validar_categoria(self, produto):
-    id_categoria = self.gerenciador_produto.buscar_id_por_categoria(self.conn, produto.categoria)
-    if not id_categoria:
-      raise ValueError ("Essa categoria não existe no catálogo.")
-    return id_categoria
+    try:
+      id_categoria = self.gerenciador_produto.buscar_id_por_categoria( produto.categoria)
+      if not id_categoria:
+        raise ValueError ("Essa categoria não existe no catálogo.")
+      return id_categoria
+    except Exception as e:
+      raise ValueError (f"Erro inesperado durante a busca pela categoria: {e}")
 
 
   # ==================== FUNÇÕES DE PROCESSAMENTO (AÇÕES DO MENU) ====================
@@ -56,14 +63,16 @@ class ControllerDeskCatalog:
     id_status = self.validar_status(produto)
     
     # Inserção do produto no banco
-    if id_prod and id_status:
-      produto.produto_banco(id_prod, id_status) # Substituição dos atributos pelo ID
-      db.inserir_varios_produtos_iguais(self.conn, produto)
-      return True
-    else:
-      raise ValueError ("Informações inválidas para cadastrar item.\n")
+    try:
+      if id_prod and id_status:
+        produto.produto_banco(id_prod, id_status) # Substituição dos atributos pelo ID
+        self.gerenciador_produto.inserir_varios_produtos_iguais(produto)
+        return True
+      else:
+        raise ValueError ("Informações inválidas para cadastrar item.\n")
+    except Exception as e:
+      raise ValueError (f"Erro inesperado durante a persistência do produto existente: {e}")
     
-
 
   def adicionar_produto_novo(self, produto: model.Produto) -> bool:
     # Validação do produto antes de inserir
@@ -84,24 +93,35 @@ class ControllerDeskCatalog:
     
     # Adicionando no banco a categoria, o status e o nome
     try:
-        db.adicionar_nome(self.conn, produto.nome, id_categoria)
+        db.adicionar_nome( produto.nome, id_categoria)
         id_prod = self.validar_nome(produto)
         if id_prod:
           produto.produto_banco(id_prod, id_status)
-          db.inserir_varios_produtos_iguais(self.conn, produto)
+          self.gerenciador_produto.inserir_varios_produtos_iguais(produto)
           return True
         else:
           raise ValueError ("Erro interno: Falha ao confirmar o ID do produto recém-cadastrado.")
     except Exception as e:
       raise ValueError (f"Erro inesperado durante a persistência de dados: {e}")
-    
 
+  def adicionar_produto(self, prod):
+    """
+    Se o produto existir → adiciona quantidade.
+    Se não existir → cadastra como um novo item.
+    """
+    try:
+      return self.adicionar_produto_existente(prod)
+    except Exception as e:
+      erro = str(e).lower()
+
+      if erro == "":
+        return self.adicionar_produto_novo(prod)
   def alterar_dados_produto(self, ):
     pass
 
 
   def exibir_todos_produtos(self,):
-    resultados = self.gerenciador_produto.exibir_todos_produtos(self.conn)
+    resultados = self.gerenciador_produto.exibir_todos_produtos()
 
     lista = []
     for i in resultados:
@@ -115,8 +135,8 @@ class ControllerDeskCatalog:
 
     return lista
     
-  def exibir_todosP_qtd(self, ):
-    resultados = self.gerenciador_produto.exibir_todos_produtos_qtdAtivos(self.conn)
+  def exibir_todosP_qtd(self,):
+    resultados = self.gerenciador_produto.exibir_todos_produtos_qtdAtivos()
 
     lista = []
     for i in resultados:

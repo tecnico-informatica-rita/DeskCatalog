@@ -46,9 +46,9 @@ def main(page: ft.Page):
     
     finally:
         # 4. Fechar a conexão ao sair
-        if conn:
+        '''if conn:
             conn.close()
-            print("ℹ️  Conexão com o banco de dados fechada.")
+            print("ℹ️  Conexão com o banco de dados fechada.")'''
 
 #if __name__ == "__main__":
     #main()
