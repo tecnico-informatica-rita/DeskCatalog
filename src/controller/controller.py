@@ -8,8 +8,10 @@ Camada Controller (Controle):
 """
 
 import model.model_deskcatalog as model
+from model.model_deskcatalog import MSG
 import view_cadastro as view
 import database.database_banco as db
+
 
 
 class ControllerDeskCatalog:
@@ -63,16 +65,17 @@ class ControllerDeskCatalog:
     id_status = self.validar_status(produto)
     
     # Inserção do produto no banco
-    try:
-      if id_prod and id_status:
-        produto.produto_banco(id_prod, id_status) # Substituição dos atributos pelo ID
-        self.gerenciador_produto.inserir_varios_produtos_iguais(produto)
-        return True
-      else:
-        raise ValueError ("Informações inválidas para cadastrar item.\n")
-    except Exception as e:
-      raise ValueError (f"Erro inesperado durante a persistência do produto existente: {e}")
+    if id_prod is not None and id_status:
+      produto.produto_banco(id_prod, id_status) # Substituição dos atributos pelo ID
+      self.gerenciador_produto.inserir_varios_produtos_iguais(produto)
+      return True
     
+    if id_prod is None:
+        raise ValueError (MSG["erro_ja_cadastrado_outraC"]["mensagem"])
+    
+    raise ValueError ("Informações inválidas para cadastrar item.\n")
+    
+  
 
   def adicionar_produto_novo(self, produto: model.Produto) -> bool:
     # Validação do produto antes de inserir
@@ -81,41 +84,47 @@ class ControllerDeskCatalog:
     # Verificando que não existe esse produto no banco
     id_prod = self.validar_nomeCategoria(produto)
     if id_prod:
-      raise ValueError ("Esse produto já existe no catálogo.\n")
+      raise ValueError (MSG["erro_ja_cadastrado"]["mensagem"])
     
     id_status = self.validar_status(produto)
-    if not id_status:
+    id_categoria = self.validar_categoria(produto)
+
+    '''if not id_status:
       raise ValueError (f"Erro: O Status '{produto.status}' não foi encontrado no catálogo.")
     
-    id_categoria = self.validar_categoria(produto)
+    
     if not id_categoria:
-      raise ValueError (f"Erro: A Categoria '{produto.categoria}' não foi encontrada no catálogo.")
+      raise ValueError (f"Erro: A Categoria '{produto.categoria}' não foi encontrada no catálogo.")'''
     
     # Adicionando no banco a categoria, o status e o nome
-    try:
-        db.adicionar_nome( produto.nome, id_categoria)
-        id_prod = self.validar_nome(produto)
-        if id_prod:
-          produto.produto_banco(id_prod, id_status)
-          self.gerenciador_produto.inserir_varios_produtos_iguais(produto)
-          return True
-        else:
-          raise ValueError ("Erro interno: Falha ao confirmar o ID do produto recém-cadastrado.")
-    except Exception as e:
-      raise ValueError (f"Erro inesperado durante a persistência de dados: {e}")
+
+    self.gerenciador_alteracoes.adicionar_nome( produto.nome, id_categoria)
+
+    id_prod = self.validar_nome(produto)
+    if not id_prod:
+      raise ValueError ("Erro interno: Falha ao confirmar o ID do produto recém-cadastrado.")
+    
+    produto.produto_banco(id_prod, id_status)
+    self.gerenciador_produto.inserir_varios_produtos_iguais(produto)
+    return True
+        
 
   def adicionar_produto(self, prod):
-    """
-    Se o produto existir → adiciona quantidade.
-    Se não existir → cadastra como um novo item.
+    """ Se o produto existir → adiciona quantidade.
+        Se não existir → cadastra como um novo item.
     """
     try:
-      return self.adicionar_produto_existente(prod)
-    except Exception as e:
+      self.adicionar_produto_existente(prod)
+      return MSG["sucesso_add_qtd"]
+    except ValueError as e:
       erro = str(e).lower()
 
-      if erro == "":
-        return self.adicionar_produto_novo(prod)
+      if "não existe no catálogo" in erro or "esse item não existe" in erro:
+        self.adicionar_produto_novo(prod)
+        return MSG["sucesso_add_prod"]
+    
+      raise ValueError(str(e))
+    
   def alterar_dados_produto(self, ):
     pass
 

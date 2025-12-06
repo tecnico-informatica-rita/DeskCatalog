@@ -10,6 +10,25 @@ from datetime import datetime as dt
 from psycopg2 import Error as ErroPsycopg2
 import pytz
 
+# ====== MENSAGENS PADRONIZADAS ======
+MSG = {
+    "sucesso_add_qtd": {"status": "ok", "mensagem": "Quantidade adicionada ao estoque!"},
+    "sucesso_add_prod": {"status": "ok", "mensagem": "Produto adicionado ao catálogo! 🎉"},
+    "erro_ja_cadastrado": {"status": "erro", "mensagem": "Esse produto já existe no catálogo!"},
+    "erro_ja_cadastrado_outraC": {"status": "erro", "mensagem": "Esse produto já está cadastrado com outra categoria."},
+    "erro_nome_invalido": {"status": "erro", "mensagem": "Nome inválido!"},
+    "erro_categoria_invalida": {"status": "erro", "mensagem": "Categoria inválida!"},
+    "erro_status_invalido": {"status": "erro", "mensagem": "Status inválido!"},
+    "erro_qtd_invalida": {"status": "erro", "mensagem": "Quantidade inválida!"},
+    "erro_qtd_invalida_tipo": {"status": "erro", "mensagem": "Quantidade inválida, digite apenas números inteiros!"},
+    "erro_geral": {"status": "erro", "mensagem": "Erro inesperado, contate o suporte!"},
+    "erro_inserir_prod": {"status": "erro","mensagem": "Erro ao adicionar produto!"},
+    "erro_inserir_inesperado": {"status": "erro","mensagem": "Erro inesperado ao adicionar produto!"},
+    "sucesso_inserir": {"status": "erro","mensagem": "Produto adicionado com sucesso!"},
+    "sucesso_inserir_varios": {"status": "erro","mensagem": "Produtos adicionados com sucesso!"}
+
+}
+
 # ==================== CLASSES DE ENTIDADE ====================
 
 #PODEMOS USAR ESSA CLASSE PARA SER NOSSO CATALOGO
@@ -19,10 +38,10 @@ class Produto:
 
     """Recebe da view em string e depois para inserir no banco converte para o id"""
     def __init__(self, nome: str, categoria: str, quantidade: str, status: str):
-        self.nome = nome.strip()
-        self.categoria = categoria.strip()
+        self.nome = nome
+        self.categoria = categoria
         self.quantidade = quantidade
-        self.status = status.strip()
+        self.status = status
         self.nu_patrimonio = None
         self.id_produto = None
         self.id_status = None
@@ -31,15 +50,15 @@ class Produto:
         try:
             self.quantidade = int(self.quantidade)
             if self.quantidade <= 0:
-                raise ValueError("Quantidade inválida!\n")
-        except:
-            raise ValueError("Quantidade deve ser um número inteiro!\n")
+                raise ValueError(MSG["erro_qtd_invalida"]["mensagem"])
+        except ValueError:
+            raise ValueError(MSG["erro_qtd_invalida_tipo"]["mensagem"])
         if not self.nome or not self.nome.strip():
-            raise ValueError ("Nome inválido!\n")
+            raise ValueError (MSG["erro_nome_invalido"]["mensagem"])
         if not self.categoria or not self.categoria.strip():
-            raise ValueError ("Categoria inválida!\n")
-        if not self.status.strip():
-            raise ValueError ("Status inválido!\n")
+            raise ValueError (MSG["erro_categoria_invalida"]["mensagem"])
+        if not self.status or not self.status.strip():
+            raise ValueError (MSG["erro_status_invalido"]["mensagem"])
         
     def produto_banco(self, id_produto, id_status):
         self.id_produto = id_produto
@@ -206,9 +225,9 @@ class GerenciadorProduto:
                 cur.execute(sql_insert, (produto.id_produto, produto.id_status))
                 return True
         except ErroPsycopg2:
-            raise ValueError ("Erro ao adicionar produto!")
+            raise ValueError (MSG["erro_inserir_prod"]["mensagem"])
         except Exception as e:
-            raise ValueError (f"Erro inesperado ao adicionar produto: {e}")
+            raise ValueError (MSG["erro_inserir_inesperado"]["mensagem"])
     
     def inserir_varios_produtos_iguais(self, produto) -> bool:
         try:
@@ -218,7 +237,7 @@ class GerenciadorProduto:
             return True
 
         except Exception as e:
-            raise ValueError(f"Erro ao adicionar produtos: {e}")
+            raise ValueError(MSG["erro_inserir_prod"]["mensagem"])
 
     def exibir_todos_produtos_qtdAtivos(self):
         with self.conn.cursor() as cur:

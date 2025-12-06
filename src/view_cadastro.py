@@ -73,7 +73,7 @@ def pagina_produtos(controller, page):
         
         page.update()
 
-    def cadastrar_produto(e):
+    '''def cadastrar_produto(e):
         try:
             nome = nome_produto.value if nome_produto.visible else search_input.value
             prod = Produto(
@@ -84,17 +84,22 @@ def pagina_produtos(controller, page):
             )
             print("🛠 Produto criado na view:", prod.__dict__)
 
-            # Verifica se é novo ou existente
-            if prod.nome in nomes_existentes:
-                print("📌 Produto EXISTE → cadastrando no existente.")
-                controller.adicionar_produto_existente(prod)
-            else:
-                controller.adicionar_produto_novo(prod)
+            mensagem = controller.adicionar_produto(prod)
+
+            # Atualiza lista de nomes apenas se for novo
+            if prod.nome not in nomes_existentes:
                 nomes_existentes.append(prod.nome)
 
             carregar_tabela()
-            page.snack_bar = ft.SnackBar(ft.Text("Produto cadastrado com sucesso! 🎉"))
+            page.snack_bar = ft.SnackBar(ft.Text(mensagem), bgcolor="green")
             page.snack_bar.open = True
+
+            # (Opcional) limpar os campos:
+            nome_produto.value = ""
+            search_input.value = ""
+            campo_qtd.value = ""
+            combo_categoria.value = None
+            combo_status.value = None
 
         except Exception as erro:
             print("⚠ ERRO AO CADASTRAR:", erro)
@@ -102,6 +107,103 @@ def pagina_produtos(controller, page):
             page.snack_bar.open = True
 
         page.update()
+    
+    def cadastrar_produto(e):
+        try:
+        nome = nome_produto.value if nome_produto.visible else search_input.value
+        prod = Produto(
+            nome=nome,
+            categoria=combo_categoria.value,
+            quantidade=campo_qtd.value,
+            status=combo_status.value
+        )
+
+        print("🛠 Produto criado na view:", prod.__dict__)
+
+        mensagem = controller.adicionar_produto(prod)
+
+        # Atualiza lista de nomes apenas se for novo
+        if prod.nome not in nomes_existentes:
+            nomes_existentes.append(prod.nome)
+
+        carregar_tabela()
+
+        # MOSTRAR SNACKBAR DE SUCESSO
+        snackbar = ft.SnackBar(ft.Text(mensagem), bgcolor="green")
+        page.overlay.append(snackbar)
+        snackbar.open = True
+
+        # Limpar os campos
+        nome_produto.value = ""
+        search_input.value = ""
+        campo_qtd.value = ""
+        combo_categoria.value = None
+        combo_status.value = None
+
+        except Exception as erro:
+            print("⚠ ERRO AO CADASTRAR:", erro)
+
+            # MOSTRAR SNACKBAR DE ERRO
+            snackbar = ft.SnackBar(ft.Text(f"⚠ Erro: {erro}"), bgcolor="red")
+            page.overlay.append(snackbar)
+            snackbar.open = True
+
+    page.update()'''
+
+    def cadastrar_produto(e):
+        try:
+            nome = nome_produto.value if nome_produto.visible else search_input.value
+
+            prod = Produto(
+                nome=nome,
+                categoria=combo_categoria.value,
+                quantidade=campo_qtd.value,
+                status=combo_status.value
+            )
+
+            print("🛠 Produto criado na view:", prod.__dict__)
+
+        # mensagem agora é um dicionário {"status": "...", "msg": "..."}
+            resposta = controller.adicionar_produto(prod)
+
+        # Se for novo nome, adiciona na lista usada pelo autocomplete
+            if prod.nome not in nomes_existentes:
+                nomes_existentes.append(prod.nome)
+
+            carregar_tabela()
+
+        # ====== MOSTRAR SNACKBAR ======
+            if resposta["status"] == "ok":
+                snackbar = ft.SnackBar(ft.Text(resposta["mensagem"]), bgcolor="green")
+            elif resposta["status"] == 'erro':
+                snackbar = ft.SnackBar(ft.Text(resposta["mensagem"]), bgcolor="red")
+
+            page.overlay.append(snackbar)
+            snackbar.open = True
+
+            # ====== LIMPAR CAMPOS ======
+            nome_produto.value = ""
+            search_input.value = ""
+            campo_qtd.value = ""
+            combo_categoria.value = None
+            combo_status.value = None
+            nome_produto.visible = False  
+            autocomplete.controls.clear()
+
+        except ValueError as erro:
+            if hasattr(erro, "args") and erro.args:
+                if isinstance(erro.args[0], dict):
+                    texto = erro.args[0].get("mensagem", "Erro inesperado")
+                else:
+                    texto = str(erro)
+            else:
+                texto = str(erro)
+
+            snackbar = ft.SnackBar(ft.Text(f"⚠ {texto}"), bgcolor="red")
+            page.overlay.append(snackbar)
+            snackbar.open = True
+        page.update()
+
 
     # ========== LAYOUT ==========
 
