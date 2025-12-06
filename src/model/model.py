@@ -8,7 +8,47 @@ Camada Model (Modelo):
 
 # ==================== CLASSES DE ENTIDADE ====================
 
-#PODEMOS USAR ESSA CLASSE PARA SER NOSSO CATALOGO
+from src.database.database import get_db_connection
+import psycopg2
+def pegar_linhas_da_view_do_banco(nome_view):
+    """Essa função retorna a visao de determinada categoria"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(f"SELECT * FROM {nome_view}")
+        resultado = cursor.fetchall()
+        conn.close()
+        return resultado
+    except psycopg2.Error as e:
+        return("Um erro inesperado aconteceu: {e}")
+
+
+def separar_o_retorno_por_variavel(lista):
+    """Pega a lista do banco e transforma em dicionário."""
+    try:
+        produtos = []
+        for nome, status, unidades in lista:
+            produtos.append({
+                "Produto": nome,
+                "Status": status,
+                "Unidades": unidades
+            })
+        
+        return produtos  
+        
+    except Exception as e:
+        return f"Um erro inesperado aconteceu: {e}"
+
+    
+    
+
+
+
+
+
+
+
+
 class Filme:
     """Classe que representa um filme no sistema de cinema"""
     
