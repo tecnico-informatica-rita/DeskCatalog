@@ -36,95 +36,65 @@ class ControllerDeskCatalog:
       raise ValueError (f"Erro inesperado durante a busca pelo produto válido: {e}")
   
   def validar_status(self, produto):
-    try:
       id_status = self.gerenciador_produto.buscar_id_por_status(produto.status)
       if not id_status:
-        raise ValueError ("Esse status não existe no catálogo.")
+        raise ValueError (MSG["erro_status_invalido"]["mensagem"])
       return id_status
-    except Exception as e:
-      raise ValueError (f"Erro inesperado durante a busca pelo status: {e}")
-  
+    
   def validar_categoria(self, produto):
-    try:
       id_categoria = self.gerenciador_produto.buscar_id_por_categoria( produto.categoria)
       if not id_categoria:
-        raise ValueError ("Essa categoria não existe no catálogo.")
+        raise ValueError (MSG["erro_categoria_invalida"]["mensagem"])
       return id_categoria
-    except Exception as e:
-      raise ValueError (f"Erro inesperado durante a busca pela categoria: {e}")
 
-
+  
   # ==================== FUNÇÕES DE PROCESSAMENTO (AÇÕES DO MENU) ====================
 
-  def adicionar_produto_existente(self, produto: model.Produto) -> bool:
-    # Validação do produto antes de inserir
-    produto.validar()
-    
-    # Verificando se esse produto existe no banco
-    id_prod = self.validar_nomeCategoria(produto)
+  def adicionar_produto_existente(self, id_prod, produto: model.Produto):
     id_status = self.validar_status(produto)
-    
-    # Inserção do produto no banco
-    if id_prod is not None and id_status:
-      produto.produto_banco(id_prod, id_status) # Substituição dos atributos pelo ID
-      self.gerenciador_produto.inserir_varios_produtos_iguais(produto)
-      return True
-    
-    if id_prod is None:
-        raise ValueError (MSG["erro_ja_cadastrado_outraC"]["mensagem"])
-    
-    raise ValueError ("Informações inválidas para cadastrar item.\n")
-    
-  
+    produto.produto_banco(id_prod, id_status) 
+    self.gerenciador_produto.inserir_varios_produtos_iguais(produto)
 
-  def adicionar_produto_novo(self, produto: model.Produto) -> bool:
-    # Validação do produto antes de inserir
-    produto.validar()
+
+  def adicionar_produto_novo(self, produto: model.Produto, id_categoria: int):
+    self.gerenciador_alteracoes.adicionar_nome(produto.nome, id_categoria)
+    dados_novo_prod = self.gerenciador_produto.buscar_dados_produto_por_nome(produto.nome)
     
-    # Verificando que não existe esse produto no banco
-    id_prod = self.validar_nomeCategoria(produto)
-    if id_prod:
-      raise ValueError (MSG["erro_ja_cadastrado"]["mensagem"])
+    if not dados_novo_prod:
+        raise ValueError(MSG["erro_id_interno"]["mensagem"])
     
+    id_prod = dados_novo_prod['id_produto']
     id_status = self.validar_status(produto)
-    id_categoria = self.validar_categoria(produto)
 
-    '''if not id_status:
-      raise ValueError (f"Erro: O Status '{produto.status}' não foi encontrado no catálogo.")
-    
-    
-    if not id_categoria:
-      raise ValueError (f"Erro: A Categoria '{produto.categoria}' não foi encontrada no catálogo.")'''
-    
-    # Adicionando no banco a categoria, o status e o nome
-
-    self.gerenciador_alteracoes.adicionar_nome( produto.nome, id_categoria)
-
-    id_prod = self.validar_nome(produto)
-    if not id_prod:
-      raise ValueError ("Erro interno: Falha ao confirmar o ID do produto recém-cadastrado.")
-    
     produto.produto_banco(id_prod, id_status)
     self.gerenciador_produto.inserir_varios_produtos_iguais(produto)
-    return True
-        
 
-  def adicionar_produto(self, prod):
-    """ Se o produto existir → adiciona quantidade.
-        Se não existir → cadastra como um novo item.
-    """
+
+  def adicionar_produto(self, produto: model.Produto) -> dict:
     try:
-      self.adicionar_produto_existente(prod)
-      return MSG["sucesso_add_qtd"]
-    except ValueError as e:
-      erro = str(e).lower()
-
-      if "não existe no catálogo" in erro or "esse item não existe" in erro:
-        self.adicionar_produto_novo(prod)
+      produto.validar()
+      id_categoria = self.validar_categoria(produto)
+        
+      dados_existentes = self.gerenciador_produto.buscar_dados_produto_por_nome(produto.nome)
+        
+      if dados_existentes: 
+          id_prod_existente = dados_existentes['id_produto']
+          id_cat_registrada = dados_existentes['id_categoria']
+            
+          if id_cat_registrada == id_categoria:
+            self.adicionar_produto_existente(id_prod_existente, produto)
+            return MSG["sucesso_add_qtd"]
+          else:
+            raise ValueError (MSG["erro_ja_cadastrado_outraC"]["mensagem"]) 
+      else:
+        self.adicionar_produto_novo(produto, id_categoria)
         return MSG["sucesso_add_prod"]
-    
+
+    except ValueError as e:
       raise ValueError(str(e))
-    
+    except Exception:
+        raise ValueError(MSG["erro_geral"]["mensagem"])
+  
   def alterar_dados_produto(self, ):
     pass
 

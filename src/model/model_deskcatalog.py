@@ -24,9 +24,10 @@ MSG = {
     "erro_geral": {"status": "erro", "mensagem": "Erro inesperado, contate o suporte!"},
     "erro_inserir_prod": {"status": "erro","mensagem": "Erro ao adicionar produto!"},
     "erro_inserir_inesperado": {"status": "erro","mensagem": "Erro inesperado ao adicionar produto!"},
-    "sucesso_inserir": {"status": "erro","mensagem": "Produto adicionado com sucesso!"},
-    "sucesso_inserir_varios": {"status": "erro","mensagem": "Produtos adicionados com sucesso!"}
-
+    "sucesso_inserir": {"status": "ok","mensagem": "Produto adicionado com sucesso!"},
+    "sucesso_inserir_varios": {"status": "ok","mensagem": "Produtos adicionados com sucesso!"},
+    "erro_adicionar_nome" : {"status": "erro","mensagem": "Erro inesperado ao adicionar nome!"},
+    "erro_id_interno": {"status": "erro","mensagem": "Erro interno: Falha ao confirmar o ID do produto recém-cadastrado."}
 }
 
 # ==================== CLASSES DE ENTIDADE ====================
@@ -55,6 +56,8 @@ class Produto:
             raise ValueError(MSG["erro_qtd_invalida_tipo"]["mensagem"])
         if not self.nome or not self.nome.strip():
             raise ValueError (MSG["erro_nome_invalido"]["mensagem"])
+        else:
+            self.nome = self.nome.capitalize()
         if not self.categoria or not self.categoria.strip():
             raise ValueError (MSG["erro_categoria_invalida"]["mensagem"])
         if not self.status or not self.status.strip():
@@ -183,6 +186,20 @@ class GerenciadorProduto:
             resultados = cur.fetchone()
 
         return resultados[0] if resultados else None
+    
+    def buscar_dados_produto_por_nome(self, nome: str):
+        sql_select = """
+            SELECT id_produto, id_categoria 
+            FROM nomes_produtos 
+            WHERE LOWER(nome_produto) = LOWER(%s);
+        """
+        with self.conn.cursor() as cur:
+            cur.execute(sql_select, (nome, ))
+            resultado = cur.fetchone()
+            
+        if resultado:
+            return {"id_produto": resultado[0], "id_categoria": resultado[1]}
+        return None
 
     def buscar_id_por_categoria(self, categoria) -> int:
         sql_select = "SELECT id_categoria FROM categorias_produto WHERE LOWER(nome_categoria) = LOWER(%s);"
@@ -445,22 +462,14 @@ class GerenciarAlteracoes:
         finally:
             conn.autocommit = True
 
-    def adicionar_nome(self, conn, nome, id_categoria) -> bool:
+    def adicionar_nome(self, nome, id_categoria) -> bool:
         sql_insert = "INSERT INTO nomes_produtos(nome_produto, id_categoria) VALUES (%s, %s)"
-
         try:
-            conn.autocommit = False
-            with conn.cursor() as cur:
+            with self.conn.cursor() as cur:
                 cur.execute(sql_insert, (nome, id_categoria ))
-            conn.commit()
-            return True
-        except ErroPsycopg2:
-            conn.rollback()
-            raise ValueError ("Erro ao adicionar nome!")
+                return True
         except Exception:
-            raise ValueError ("Erro inesperado ao adicionar nome!")
-        finally:
-            conn.autocommit = True
+            raise ValueError (MSG["erro_adicionar_nome"]["mensagem"])
 
     def alterar_status(self, conn, produto, status_antigo:str):
         id_status_novo = self.buscar_id_por_status(conn, produto.novo_status)
