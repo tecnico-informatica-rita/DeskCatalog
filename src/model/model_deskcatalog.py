@@ -277,16 +277,16 @@ class GerenciarEmprestimo:
         """Recebe uma conexão com o banco de dados."""
         self.conn = conn
 
-    def buscar_id_por_disponibilidade(self, conn, nome_disponibilidade):
+    def buscar_id_por_disponibilidade(self, nome_disponibilidade):
         sql_select = "SELECT id_disponibilidade FROM status_disponibilidade_produto WHERE descricao_disponibilidade = %s"
 
-        with conn.cursor() as cur:
+        with self.conn.cursor() as cur:
             cur.execute(sql_select, (nome_disponibilidade, ))
             resultados = cur.fetchone()
 
         return resultados[0] if resultados else None
 
-    def buscar_nuP_validos_por_id_produto(self, conn, nome, categoria):
+    def buscar_nuP_validos_por_id_produto(self, nome, categoria):
 
         sql_select = """SELECT pi.nu_patrimonio FROM produtos_individuais AS pi
             JOIN nomes_produtos AS n ON n.id_produto = pi.id_produto
@@ -295,7 +295,7 @@ class GerenciarEmprestimo:
             WHERE n.nome_produto = %s AND c.nome_categoria = %s
         """
 
-        with conn.cursor() as cur:
+        with self.conn.cursor() as cur:
             cur.execute(sql_select, (nome, categoria ))
             resultados = cur.fetchall()
 
@@ -305,20 +305,20 @@ class GerenciarEmprestimo:
 
         return retorno
 
-    def validar_nu_patrimonio_ativo(self, conn, nu_patrimonio):
+    def validar_nu_patrimonio_ativo(self, nu_patrimonio):
         status = 'Ativo'
 
         sql_select = """SELECT 1 FROM produtos_individuais  AS pi 
             JOIN status_produto AS s ON pi.id_status_produto = s.id_status_produto
             WHERE pi.nu_patrimonio = %s AND s.descricao_status = %s"""
 
-        with conn.cursor() as cur:
+        with self.conn.cursor() as cur:
             cur.execute(sql_select, (nu_patrimonio, status))
             resultado = cur.fetchone()
 
         return resultado if resultado else None
 
-    def validar_nuP_disponivel(self, conn, nu_patrimonio):
+    def validar_nuP_disponivel(self, nu_patrimonio):
         disponibilidade = 'Emprestado'
 
         sql_select = """SELECT
@@ -328,18 +328,18 @@ class GerenciarEmprestimo:
             JOIN status_disponibilidade_produto AS s ON e.id_disponibilidade = s.id_disponibilidade
             WHERE e.nu_patrimonio = %s AND s.descricao_disponibilidade <> %s) AS pat_valido; """
     
-        with conn.cursor() as cur:
+        with self.conn.cursor() as cur:
             cur.execute(sql_select, (nu_patrimonio, disponibilidade))
             resultado = cur.fetchone()
 
         return resultado[0] if resultado else None
 
 
-    def validar_nu_patrimonio(self, conn, nome, categoria, qtd):
+    def validar_nu_patrimonio(self, nome, categoria, qtd):
         if qtd <= 0 and not isinstance(qtd, int):
             raise ValueError ("Erro: quantidade inválida!")
     
-        num_patrimonio = self.buscar_nuP_validos_por_id_produto(conn, nome, categoria)
+        num_patrimonio = self.buscar_nuP_validos_por_id_produto( nome, categoria)
 
         if not num_patrimonio:
             raise ValueError ("Erro: não foi encontrado nenhum número do patrimônio inválido para esse produto!")
@@ -353,9 +353,9 @@ class GerenciarEmprestimo:
             if len(pat_validos) == qtd:
                 break
 
-            esta_ativo = self.validar_nu_patrimonio_ativo(conn, p)
+            esta_ativo = self.validar_nu_patrimonio_ativo( p)
             if esta_ativo is not None:
-                esta_disponivel = self.validar_nuP_disponivel(conn, p)
+                esta_disponivel = self.validar_nuP_disponivel( p)
                 if esta_disponivel is True:
                     pat_validos.append(p)
 
@@ -364,8 +364,8 @@ class GerenciarEmprestimo:
     
         return True, pat_validos
 
-    def validar_emprestimo(self, conn, emprestimo, nu_patrimonio):
-        id_disponibilidade = self.buscar_id_por_disponibilidade(conn, 'Emprestado')
+    def validar_emprestimo(self, emprestimo, nu_patrimonio):
+        id_disponibilidade = self.buscar_id_por_disponibilidade( 'Emprestado')
         if not id_disponibilidade:
             raise ValueError ("Erro: disponibilidade inválida!")
     
@@ -375,33 +375,33 @@ class GerenciarEmprestimo:
         emprestimo.data_devolucao = emprestimo.converter_data_timestamp()
 
 
-    def realizar_emprestimo(self, conn, emprestimo, qtd, pat_validos):
+    def realizar_emprestimo(self, emprestimo, qtd, pat_validos):
         sql_insert = """INSERT INTO emprestimos(nu_patrimonio, id_disponibilidade, data_devolucao, nome_emprestimos, data_emprestimo) 
                         VALUES (%s, %s, %s, %s, %s);"""
 
-        if conn is None:
+        if self.conn is None:
             raise ValueError("Erro com a conexão com o banco de dados.")
     
         emprestimo.validar()
 
         for p in pat_validos:
-            self.validar_emprestimo(conn, emprestimo, p)
+            self.validar_emprestimo( emprestimo, p)
 
             try:
-                with conn.cursor() as cur:
+                with self.conn.cursor() as cur:
                     cur.execute(sql_insert, (
                         emprestimo.nu_patrimonio, emprestimo.id_disponibilidade, emprestimo.data_devolucao,
                         emprestimo.nome_emprestimo, emprestimo.data_emprestimo))
 
             except (Exception) as e:
-                conn.rollback()
+                self.conn.rollback()
                 raise ValueError(f"Erro ao realizar empréstimo: {e}")
         
         try:
-            conn.commit()
+            self.conn.commit()
             return True, len(pat_validos)
         except (Exception) as e:
-            conn.rollback()
+            self.conn.rollback()
             raise ValueError(f"Erro ao confirmar transação de empréstimo: {e}")
     
     # DEVOLUCOES 

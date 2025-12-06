@@ -132,7 +132,7 @@ class ControllerDeskCatalog:
 #       REALIZANDO EMPRÉSTIMOS
 
   def fazer_emprestimo(self, emprestimo, nome, categoria, qtd):
-    qtd_banco, pat_validos = self.gerenciador_emprestimo.validar_nu_patrimonio(self.conn, nome, categoria, qtd)
+    qtd_banco, pat_validos = self.gerenciador_emprestimo.validar_nu_patrimonio( nome, categoria, qtd)
 
     if qtd_banco is True:
       qtd_emprestada = qtd
@@ -146,9 +146,8 @@ class ControllerDeskCatalog:
       else:
         return {"status": "cancelado", "mensagem": "Empréstimo cancelado pelo usuário."}
       
-    emprestado, qtd_emprestimos = self.gerenciador_emprestimo.realizar_emprestimo(self.conn, emprestimo, qtd_emprestada, pat_emprestados)
+    emprestado, qtd_emprestimos = self.gerenciador_emprestimo.realizar_emprestimo( emprestimo, qtd_emprestada, pat_emprestados)
     return {"status": "sucesso", "qtd_registrada": qtd_emprestimos}
-
 
     
   def fazer_devolucao(self,):
