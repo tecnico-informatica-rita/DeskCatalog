@@ -395,12 +395,13 @@ def realizar_emprestimo(conn, emprestimo, qtd, pat_validos):
             conn.rollback()
             raise ValueError(f"Erro ao confirmar transação de empréstimo: {e}")
     
+    
     #       DEVOLUÇÕES
     
 def criar_view_produtos_emprestados_30_dias(conn):
     sql_select_view = """
         CREATE OR REPLACE VIEW vw_itens_para_devolucao_30 AS
-        SELECT n.nome_produto, e.nome_emprestimos, e.data_emprestimo, COUNT(e.nu_patrimonio) AS quantidade_emprestada
+        SELECT n.nome_produto, e.nome_emprestimos, TO_CHAR(e.data_emprestimo, 'DD/MM/YYYY') AS data_brasil, COUNT(e.nu_patrimonio) AS quantidade_emprestada
         FROM emprestimos AS e
         JOIN produtos_individuais AS pi ON pi.nu_patrimonio = e.nu_patrimonio
         JOIN nomes_produtos AS n ON n.id_produto = pi.id_produto
@@ -442,34 +443,92 @@ def exibir_itens_para_devolucao_30(conn):
         sql_select = "SELECT * FROM vw_itens_para_devolucao_30"
         cur.execute(sql_select)
         rows = cur.fetchall()
-        return rows
+    return rows
     
 def exibir_historico_transacoes_emprestimos(conn):
     with conn.cursor() as cur:
         sql_select = "SELECT * FROM vw_historico_transacoes_emprestimos"
         cur.execute(sql_select)
         rows = cur.fetchall()
-        return rows
+    return rows
 
-def buscar_nuP_emprestimo(conn, nome, emprestimo):
+def buscar_nuP_emprestimo(conn, nome_produto, emprestimo, qtd):
     sql_select_view = """
-        CREATE OR REPLACE VIEW vw_historico_transacoes_emprestimos AS
-        SELECT n.nome_produto, e.nome_emprestimos, e.data_emprestimo, s.descricao_disponibilidade, COUNT(e.nu_patrimonio) AS quantidade_total
+        SELECT e.nu_patrimonio
         FROM emprestimos AS e
         JOIN produtos_individuais AS pi ON pi.nu_patrimonio = e.nu_patrimonio
         JOIN nomes_produtos AS n ON n.id_produto = pi.id_produto
         JOIN status_disponibilidade_produto AS s ON s.id_disponibilidade = e.id_disponibilidade
-        GROUP BY n.nome_produto, e.nome_emprestimos, e.data_emprestimo, s.descricao_disponibilidade 
-        ORDER BY 
-        e.data_emprestimo DESC;
+        WHERE s.descricao_disponibilidade IN ('Emprestado', 'Em atraso') 
+            AND n.nome_produto = %s
+            AND e.nome_emprestimos = %s
+            AND e.data_emprestimo::date = %s
+        LIMIT %s;
     """
     try:
         with conn.cursor() as cur:
-            cur.execute(sql_select_view,)
-        return True
+            cur.execute(sql_select_view, (nome_produto, emprestimo.nome_emprestimo, emprestimo.data_emprestimo, qtd))
+            resultados = cur.fetchall()
+        retorno = []
+        for tupla in resultados:
+            retorno.append(tupla[0])
+
+        return retorno
     except Exception as e:
         raise ValueError (f"Erro inesperado ao realizar query: {e}")
-def validar_devolucao(conn, nome):
-    pass
+    
+def validar_nuP_emprestimo(conn, nu_patrimonio):
+    sql_select = """SELECT 1 FROM produtos_individuais  AS pi 
+        JOIN emprestimos AS e ON pi.nu_patrimonio = e.nu_patrimonio
+        WHERE pi.nu_patrimonio = %s AND e.devolvido_em IS NULL AND e.nome_devolucao IS NULL"""
+
+    with conn.cursor() as cur:
+        cur.execute(sql_select, (nu_patrimonio,))
+        resultado = cur.fetchone()
+
+    return resultado if resultado else None
+    
+def validar_nuP_devolucao(conn, nome_produto, emprestimo, qtd):
+    try:
+        qtd = int(qtd)
+        if qtd <= 0:
+            raise ValueError ("Erro: quantidade inválida!")
+    except Exception as e:
+        raise ValueError ("Erro: quantidade inválida, digite apenas números!")
+    
+    num_patrimonio = buscar_nuP_emprestimo(conn, nome_produto, emprestimo, qtd)
+
+    if not num_patrimonio:
+        raise ValueError ("Erro: não foi encontrado nenhum número do patrimônio válido para essa devolução!")
+    
+    if len(num_patrimonio) < qtd:
+        raise ValueError ("Erro: a quantidade esse produto não foi encotrada!")
+    
+    pat_validos = []
+
+    for p in num_patrimonio:
+        if len(pat_validos) == qtd:
+            break
+    
+        precisa_devolver = validar_nu_patrimonio_ativo(conn, p)
+        if precisa_devolver is not None:
+                pat_validos.append(p)
+
+    if len(pat_validos) < qtd:
+        return False, pat_validos
+    
+    return True, pat_validos
+
+def validar_devolucao(conn, emprestimo, nu_patrimonio):
+    id_disponibilidade_devolvido = buscar_id_por_disponibilidade(conn, 'Devolvido')
+    id_disponibilidade_devolvido = buscar_id_por_disponibilidade(conn, 'Devolvido')
+    if not id_disponibilidade:
+        raise ValueError ("Erro: disponibilidade inválida!")
+    
+    emprestimo.nu_patrimonio = nu_patrimonio
+    emprestimo.id_disponibilidade = id_disponibilidade
+    emprestimo.data_emprestimo = emprestimo.agora()
+    emprestimo.data_devolucao = emprestimo.converter_data_timestamp()
+
 def realizar_devolucao(conn):
     pass

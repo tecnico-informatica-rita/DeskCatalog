@@ -54,6 +54,7 @@ class Emprestimo:
         self.data_devolucao = data_devolucao.strip()
         self.devolveu_em = None
         self.data_emprestimo = None
+        self.data_brasil = None
         
 
     def validar(self):
@@ -75,7 +76,14 @@ class Emprestimo:
     def data_devolucao_str_para_date(self) -> dt.date:
         return dt.strptime(self.data_devolucao, "%Y-%m-%d").date()
         
+    def data_date_str(self, data: str) -> str:
+        data_eua = dt.datetime.strptime(data, '%Y-%m-%d') 
+        data_brasil_str = data_eua.strftime('%d/%m/%Y') 
+        self.data_brasil = data_brasil_str
+    
+        return data_brasil_str
         
+
     def converter_data_timestamp(self):
         data_datetime = self.data_devolucao_str_para_date()
 
@@ -89,7 +97,30 @@ class Emprestimo:
         )
         
         return self.tz.localize(data)
-        
+    
     def agora(self):
         return dt.now(self.tz)
     
+    def calcular_status(self):
+        """
+        Retorna o id STATUS correto com base:
+        - na data prevista de devolução
+        - na data atual
+        - se o item já foi devolvido
+        """
+
+        agora = self.agora()
+
+        # Item já devolvido
+        if self.devolveu_em:
+            return "Devolvido"
+
+        # Converte a data prevista (string) para datetime
+        data_prevista = self.converter_data_timestamp()
+
+        # Se já passou do prazo
+        if agora > data_prevista:
+            return "Em atraso"
+
+        # Caso contrário
+        return "Emprestado"
