@@ -132,6 +132,7 @@ class ControllerDeskCatalog:
 #       REALIZANDO EMPRÉSTIMOS
 
   def fazer_emprestimo(self, emprestimo, nome, categoria, qtd):
+    emprestimo.validar()
     qtd_banco, pat_validos = self.gerenciador_emprestimo.validar_nu_patrimonio( nome, categoria, qtd)
 
     if qtd_banco is True:

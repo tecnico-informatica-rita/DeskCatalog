@@ -73,34 +73,40 @@ class Emprestimo:
 
     tz = pytz.timezone('America/Sao_Paulo')
 
-    def __init__(self, nome_devolucao: str, nome_emprestimo: str, data_devolucao: str, nu_patrimonio: int):
+    def __init__(self, nome_emprestimo: str, data_devolucao: str, nu_patrimonio = -1, nome_devolucao = "Sem devolução"):
         self.nu_patrimonio = nu_patrimonio
         self.id_disponibilidade = None
         self.nome_devolucao = nome_devolucao.strip().title()
         self.nome_emprestimo = nome_emprestimo.strip().title()
-        self.data_devolucao = data_devolucao.strip()
+        self.data_devolucao = data_devolucao
         self.devolveu_em = None
         self.data_emprestimo = None
         
 
     def validar(self):
+        if not self.nome_emprestimo and not self.data_devolucao:
+                raise ValueError("Preencha todos os campos obrigatórios!")
+        
         if not self.nome_devolucao:
-            raise ValueError ("Nome do devolutor inválido.\n")
+            raise ValueError ("Nome do devolutor inválido.")
         if not self.nome_emprestimo:
-            raise ValueError ("Nome do solicitador inválido.\n")
+            raise ValueError ("Nome do solicitador inválido.")
+        if not self.data_devolucao:
+            raise ValueError ("Preencha a data de devolução!")
         
         if not self.nu_patrimonio or not isinstance(self.nu_patrimonio, int):
-            raise ValueError ("Número do patrimônio inválido.\n")
+            raise ValueError ("Número do patrimônio inválido.")
         
         data_datetime = self.data_devolucao_str_para_date()
         hoje = dt.now(self.tz).date()
 
         if data_datetime < hoje:
-            raise ValueError ("A data não pode estar no passado.\n")
+            raise ValueError ("A data não pode estar no passado.")
         
     # O DatePicker retorna string “YYYY-MM-DD”
     def data_devolucao_str_para_date(self) -> dt.date:
-        return dt.strptime(self.data_devolucao, "%Y-%m-%d").date()
+        data_formatada = str(self.data_devolucao).replace("T", " ").split(" ")[0]
+        return dt.strptime(data_formatada, "%Y-%m-%d").date()
         
         
     def converter_data_timestamp(self):
@@ -292,7 +298,7 @@ class GerenciarEmprestimo:
             JOIN nomes_produtos AS n ON n.id_produto = pi.id_produto
             JOIN categorias_produto AS c ON c.id_categoria = n.id_categoria
             JOIN status_produto AS s ON s.id_status_produto = pi.id_status_produto
-            WHERE n.nome_produto = %s AND c.nome_categoria = %s
+            WHERE LOWER(n.nome_produto) = LOWER(%s) AND LOWER(c.nome_categoria) = LOWER(%s)
         """
 
         with self.conn.cursor() as cur:
@@ -326,23 +332,30 @@ class GerenciarEmprestimo:
             SELECT 1
             FROM emprestimos AS e
             JOIN status_disponibilidade_produto AS s ON e.id_disponibilidade = s.id_disponibilidade
-            WHERE e.nu_patrimonio = %s AND s.descricao_disponibilidade <> %s) AS pat_valido; """
+            WHERE e.nu_patrimonio = %s AND s.descricao_disponibilidade = %s) AS pat_valido; """
     
         with self.conn.cursor() as cur:
             cur.execute(sql_select, (nu_patrimonio, disponibilidade))
             resultado = cur.fetchone()
 
-        return resultado[0] if resultado else None
+        return resultado[0]
 
 
     def validar_nu_patrimonio(self, nome, categoria, qtd):
-        if qtd <= 0 and not isinstance(qtd, int):
-            raise ValueError ("Erro: quantidade inválida!")
-    
+        try:
+            qtd = int(qtd)
+            if qtd <= 0:
+                raise ValueError(MSG["erro_qtd_invalida"]["mensagem"])
+        except ValueError:
+            raise ValueError(MSG["erro_qtd_invalida_tipo"]["mensagem"])
+        
+        if not nome or not categoria:
+            raise ValueError ("Preencha o nome e categoria do item!")
+        
         num_patrimonio = self.buscar_nuP_validos_por_id_produto( nome, categoria)
 
         if not num_patrimonio:
-            raise ValueError ("Erro: não foi encontrado nenhum número do patrimônio inválido para esse produto!")
+            raise ValueError ("Erro: não foi encontrado nenhum número do patrimônio válido para esse produto!")
     
         if len(num_patrimonio) < qtd:
             raise ValueError ("Erro: a quantidade esse produto não foi encotrada!")
@@ -354,7 +367,7 @@ class GerenciarEmprestimo:
                 break
 
             esta_ativo = self.validar_nu_patrimonio_ativo( p)
-            if esta_ativo is not None:
+            if esta_ativo:
                 esta_disponivel = self.validar_nuP_disponivel( p)
                 if esta_disponivel is True:
                     pat_validos.append(p)
@@ -384,25 +397,21 @@ class GerenciarEmprestimo:
     
         emprestimo.validar()
 
-        for p in pat_validos:
-            self.validar_emprestimo( emprestimo, p)
-
-            try:
-                with self.conn.cursor() as cur:
-                    cur.execute(sql_insert, (
-                        emprestimo.nu_patrimonio, emprestimo.id_disponibilidade, emprestimo.data_devolucao,
-                        emprestimo.nome_emprestimo, emprestimo.data_emprestimo))
-
-            except (Exception) as e:
-                self.conn.rollback()
-                raise ValueError(f"Erro ao realizar empréstimo: {e}")
-        
         try:
-            self.conn.commit()
-            return True, len(pat_validos)
-        except (Exception) as e:
+            with self.conn.cursor() as cur:
+                for p in pat_validos:
+                    emp = Emprestimo(nome_emprestimo = emprestimo.nome_emprestimo, data_devolucao = emprestimo.data_devolucao, nu_patrimonio = p)
+                    self.validar_emprestimo(emp, p)
+        
+                    cur.execute(sql_insert, (
+                        emp.nu_patrimonio, emp.id_disponibilidade, emp.data_devolucao,
+                        emp.nome_emprestimo, emp.data_emprestimo))
+
+                self.conn.commit()
+                return True, len(pat_validos)
+        except Exception as e:
             self.conn.rollback()
-            raise ValueError(f"Erro ao confirmar transação de empréstimo: {e}")
+            raise ValueError(f"Erro ao realizar empréstimo: {e}")
     
     # DEVOLUCOES 
     '''def buscar_produtos_emprestados(conn):
