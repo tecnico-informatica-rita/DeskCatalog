@@ -1,51 +1,50 @@
 import flet as ft
 
-#Início BD ---------------------------------------------------------------------------------------------------------------
+#Teste sem o BD ---------------------------------------------------------------------------------------------------------------
 separar_linhas_categoria_informatica = [
-    {"Produto": "Mouse Gamer", "Status": "Disponível", "Unidades": 12},
+    {"Produto": "Mouse Gamer", "Status": "Ativo", "Unidades": 12},
     {"Produto": "Teclado Mecânico", "Status": "Indisponível", "Unidades": 0},
-    {"Produto": "Monitor 24\"", "Status": "Disponível", "Unidades": 5},
-    {"Produto": "Mouse Gamer", "Status": "Disponível", "Unidades": 12},
+    {"Produto": "Monitor 24\"", "Status": "Em Manutenção", "Unidades": 5},
+    {"Produto": "Mouse Gamer", "Status": "ativo", "Unidades": 12},
     {"Produto": "Teclado Mecânico", "Status": "Indisponível", "Unidades": 0},
-    {"Produto": "Monitor 24\"", "Status": "Disponível", "Unidades": 5},
-    {"Produto": "Mouse Gamer", "Status": "Disponível", "Unidades": 12},
-    {"Produto": "Teclado Mecânico", "Status": "Indisponível", "Unidades": 0},
-    {"Produto": "Monitor 24\"", "Status": "Disponível", "Unidades": 5}
+    {"Produto": "Monitor 24\"", "Status": "Inativo", "Unidades": 5},
+    {"Produto": "Mouse Gamer", "Status": "Ativo", "Unidades": 12},
+    {"Produto": "Teclado Mecânico", "Status": "Sla", "Unidades": 0},
+    {"Produto": "Monitor 24\"", "Status": "Ativo", "Unidades": 5}
     ]
 
-class ItensView:
+class seguranca_view:
     def __init__(self):
         pass
 
     def main(self, page: ft.Page):
         page.title = "Segurança"
-        page.window_resizable = False
+        page.window.resizable = False
         page.theme_mode = ft.ThemeMode.LIGHT
         page.padding = 0
 
         #Ajuda ------------------------------------------------------------------------------------------------------------
         def fechar_snack():
-            page.snack_bar.open = False
+            snack_bar.open = False
             page.update()
         
-        page.snack_bar = ft.SnackBar(
-                content=ft.Text("Use o filtro para ver os itens disponíveis e indisponíveis."),
+        snack_bar = ft.SnackBar(
+                content=ft.Text("Use o filtro para ver os itens disponíveis e/ou indisponíveis."),
                 action="OK",
                 on_action=lambda _: fechar_snack(),
-                duration=3000 )
+                duration=9000 )
         
+        page.overlay.append(snack_bar)
+
         def abrir_ajuda(e):
-        
-            page.snack_bar.open = True
+            snack_bar.open = True
             page.update()
-        
-        
 
         #Início Menu ---------------------------------------------------------------------------------------------------------------
         page.drawer = ft.NavigationDrawer(
             controls= [
                 ft.NavigationDrawerDestination(
-                    label= "Início", icon= ft.Icons.HOME
+                    label= "Segurança", icon= ft.Icons.SECURITY
                 ),
                 ft.NavigationDrawerDestination(
                     label= "Sala / Laboratório", icon= ft.Icons.BIOTECH
@@ -67,6 +66,9 @@ class ItensView:
                 ),
                 ft.NavigationDrawerDestination(
                     label= "Outros", icon= ft.Icons.MISCELLANEOUS_SERVICES
+                ),
+                ft.NavigationDrawerDestination(
+                    label= "Início", icon= ft.Icons.HOME
                 )
             ]
         )
@@ -77,7 +79,7 @@ class ItensView:
             icon_color= "#b551c7",
             items = [
                 ft.PopupMenuItem(text= "Mostrar todos", on_click= lambda _: filtrar_status("todos")),
-                ft.PopupMenuItem(text= "Disponíveis", on_click= lambda _: filtrar_status("disponível")),
+                ft.PopupMenuItem(text= "Disponíveis", on_click= lambda _: filtrar_status("ativo")),
                 ft.PopupMenuItem(text= "Indisponíveis", on_click= lambda _: filtrar_status("indisponível"))
             ]
         )
@@ -133,10 +135,10 @@ class ItensView:
         #Inicio dos Cards ---------------------------------------------------------------------------------------------------------
         def criar_card(produto, on_click_disponivel=None, on_click_indisponivel=None):
             nome = produto["Produto"]
-            status = produto["Status"].lower()
+            status = produto["Status"].strip().lower()
             unidades = produto["Unidades"]
         
-            if status == "disponível":
+            if status == "ativo":
                 cor_botao = ft.Colors.GREEN_400
                 texto_botao = "Disponível"
                 on_click = on_click_disponivel
@@ -183,8 +185,11 @@ class ItensView:
             for p in separar_linhas_categoria_informatica:
                 if status == "todos":
                     grid.controls.append(criar_card(p))
-                else:
-                    if p["Status"].lower() == status:
+                elif status == "ativo":
+                    if p["Status"].strip().lower() == "ativo":
+                        grid.controls.append(criar_card(p))
+                elif status == "indisponível":
+                    if p["Status"].strip().lower() != "ativo":
                         grid.controls.append(criar_card(p))
             page.update()
 
@@ -221,7 +226,7 @@ class ItensView:
 
 
 def main(page: ft.Page):
-    view = ItensView()
+    view = seguranca_view()
     view.main(page)
 
 ft.app(target=main)
