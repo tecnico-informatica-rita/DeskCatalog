@@ -12,7 +12,7 @@ class ItensView:
         pass
 
     def main(self, page: ft.Page):
-        page.title = "Sala/Laboratório"
+        page.title = "Home"
         page.window.resizable = False
         page.theme_mode = ft.ThemeMode.LIGHT
         page.padding = 0
