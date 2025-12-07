@@ -3,11 +3,14 @@ import plotly.express as px
 import flet as ft
 from flet.plotly_chart import PlotlyChart
 
-# tive que atualizar o flet com: 
+# tive que instalar o flet: pip install flet
+# tive que atualizar o flet com: pip install "flet[all]==0.25.2" --upgrade
 # tive que instalar: pip install plotly
 # tive que instalar: pip install --upgrade kaleido
+# tive que instalar plotly.express: pip install "plotly[express]"
+#tive que instalar o pandas: pip install pandas
 
-class ItensView:
+class home_view:
     def __init__(self):
         pass
 
@@ -17,9 +20,29 @@ class ItensView:
         page.theme_mode = ft.ThemeMode.LIGHT
         page.padding = 0
 
+        #Ajuda ------------------------------------------------------------------------------------------------------------
+        def fechar_snack():
+            snack_bar.open = False
+            page.update()
+        
+        snack_bar = ft.SnackBar(
+                content=ft.Text("Precisa de ajuda? Use a barra de pesquisa para encontrar itens rapidamente. Os gráficos acima mostram um resumo visual das categorias cadastradas."),
+                action="OK",
+                on_action=lambda _: fechar_snack(),
+                duration=9000 )
+        
+        page.overlay.append(snack_bar)
+
+        def abrir_ajuda(e):
+            snack_bar.open = True
+            page.update()
+
         #Funções no Menu ---------------------------------------------------------------------------------------------------------------
         page.drawer = ft.NavigationDrawer(
             controls= [
+                ft.NavigationDrawerDestination(
+                    label= "Início", icon= ft.Icons.HOME
+                ),
                 ft.NavigationDrawerDestination(
                     label= "Cadastrar Item", icon= ft.Icons.ADD_CIRCLE
                 ),
@@ -130,7 +153,7 @@ class ItensView:
                     vertical_alignment= ft.CrossAxisAlignment.CENTER
                 ),
             ),
-            title= ft.Text("Sala / Laboratório", size=22, color=ft.Colors.WHITE),
+            title= ft.Text("Menu", size=22, color=ft.Colors.WHITE),
             bgcolor= "#b551c7",
             actions= [
                 ft.Container(
@@ -138,13 +161,27 @@ class ItensView:
                     height= 40,
                     bgcolor= "white",
                     border_radius= 50,
-                    margin = ft.Margin(0,0,20,0),
+                    margin = ft.Margin(0,0,10,0),
                     content= ft.Icon(
                         ft.Icons.PERSON,
                         color= "#b551c7",
                         size= 30
                     ),
                     on_click= lambda _: print("Perfil clicado!")
+                ),
+                ft.Container(
+                    width= 40,
+                    height= 40,
+                    bgcolor= "white",
+                    border_radius= 50,
+                    ink= True,
+                    margin = ft.Margin(0,0,20,0),
+                    on_click= abrir_ajuda,
+                    content= ft.Icon(
+                        ft.Icons.QUESTION_MARK,
+                        color= "#b551c7",
+                        size= 30
+                    )
                 )
             ]
         )
@@ -219,7 +256,7 @@ class ItensView:
 
 
 def main(page: ft.Page):
-    view = ItensView()
+    view = home_view()
     view.main(page)
 
 ft.app(target=main)
