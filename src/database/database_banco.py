@@ -309,6 +309,43 @@ def criar_view_produtos_exibicao_qtdAtivos(conn):
     except Exception as e:
         raise ValueError (f"Erro inesperado ao realizar query: {e}")
     
+def criar_view_prod_disponiveis(conn):
+    sql_select_view = """
+        CREATE OR REPLACE VIEW vw_produtos_disponiveis AS
+        SELECT 
+        c.nome_categoria,
+        n.nome_produto,
+        COUNT(pi.nu_patrimonio) AS total_produtos,
+        COALESCE(SUM(
+            CASE 
+                WHEN s.descricao_status = 'Ativo' 
+                    AND NOT EXISTS (
+                        SELECT 1
+                        FROM emprestimos e2
+                        JOIN status_disponibilidade_produto sdp 
+                        ON e2.id_disponibilidade = sdp.id_disponibilidade
+                        WHERE e2.nu_patrimonio = pi.nu_patrimonio
+                        AND sdp.descricao_disponibilidade = 'Emprestado'
+                    )
+                THEN 1 
+                ELSE 0 
+            END
+        ), 0) AS total_disponiveis
+    FROM categorias_produto AS c
+    INNER JOIN nomes_produtos AS n ON n.id_categoria = c.id_categoria
+    INNER JOIN produtos_individuais AS pi ON pi.id_produto = n.id_produto
+    INNER JOIN status_produto AS s ON s.id_status_produto = pi.id_status_produto
+    GROUP BY c.nome_categoria, n.nome_produto
+    ORDER BY c.nome_categoria, n.nome_produto;
+
+    """
+    try:
+        with conn.cursor() as cur:
+            cur.execute(sql_select_view,)
+            return True
+    except Exception as e:
+        raise ValueError (f"Erro inesperado ao realizar query: {e}")
+    
 def view_grafico_comparacao_ativos_inativos(conn):
         sql_select_view = """
         CREATE OR REPLACE VIEW vw_grafico_AtivoInativo AS
@@ -370,6 +407,7 @@ def criar_todas_views(conn):
     view_grafico_comparacao_ativos_inativos(conn)
     view_grafico_emprestimoCat_diarios(conn)
     view_grafico_itensPenCat(conn)
+    criar_view_prod_disponiveis(conn)
 
     #   ================ POPULA O BANCO E CRIA AS VIEW ==============
 

@@ -416,6 +416,13 @@ class GerenciarEmprestimo:
         except Exception as e:
             self.conn.rollback()
             raise ValueError(f"Erro ao realizar empréstimo: {e}")
+        
+    def exibir_produtos_disponiveis(self):
+        with self.conn.cursor() as cur:
+            sql_select = "SELECT * FROM vw_produtos_disponiveis"
+            cur.execute(sql_select)
+            rows = cur.fetchall()
+            return rows
     
     # DEVOLUCOES 
     '''def buscar_produtos_emprestados(conn):

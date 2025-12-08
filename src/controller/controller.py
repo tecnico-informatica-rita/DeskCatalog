@@ -149,6 +149,23 @@ class ControllerDeskCatalog:
     emprestado, qtd_emprestimos = self.gerenciador_emprestimo.realizar_emprestimo( emprestimo, qtd, pat_validos)
     return {"status": "sucesso", "qtd_registrada": qtd_emprestimos}
 
+  def exibir_prod_disponiveis(self,):
+    resultados = self.gerenciador_emprestimo.exibir_produtos_disponiveis()
+
+    lista = []
+    for i in resultados:
+      resultado_dict = {
+        'categoria': i[0],
+        'nome': i[1],
+        'total_produtos': i[2],
+        'total_disponiveis': i[3]
+      }
+      lista.append(resultado_dict)
+
+    return lista
+  
+  #       REALIZANDO DEVOLUÇÃO
+  
   def fazer_devolucao(self,):
     pass
 

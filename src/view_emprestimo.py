@@ -9,7 +9,7 @@ def pagina_emprestimo(controller, page):
 
     # ----- BUSCAS INICIAIS -----
     nomes_existentes = controller.gerenciador_produto.buscar_nomes_produtos_existentes()
-    produtos_disponiveis = controller.exibir_todosP_qtd()  # lista de dicts com categoria, nome, total_produtos, total_ativo
+    produtos_disponiveis = controller.exibir_prod_disponiveis()  # lista de dicts com categoria, nome, total_produtos, total_ativo
 
     # ========== COMPONENTES ==========
     search_input = ft.TextField(label="Buscar Produto", width=300, on_change=lambda e: atualizar_autocomplete(e))
@@ -45,7 +45,7 @@ def pagina_emprestimo(controller, page):
             ft.DataColumn(ft.Text("Categoria")),
             ft.DataColumn(ft.Text("Nome")),
             ft.DataColumn(ft.Text("Quantidade total")),
-            ft.DataColumn(ft.Text("Quantidade de ativos")),
+            ft.DataColumn(ft.Text("Quantidade de disponíveis")),
         ],
         rows=[]
     )
@@ -80,13 +80,14 @@ def pagina_emprestimo(controller, page):
 
     def carregar_tabela(e=None):
         tabela.rows.clear()
+        produtos_disponiveis = controller.exibir_prod_disponiveis()
         for item in produtos_disponiveis:
             tabela.rows.append(
                 ft.DataRow(cells=[
                     ft.DataCell(ft.Text(str(item['categoria']))),
                     ft.DataCell(ft.Text(item['nome'])),
                     ft.DataCell(ft.Text(item['total_produtos'])),
-                    ft.DataCell(ft.Text(item['total_ativo'])),
+                    ft.DataCell(ft.Text(item['total_disponiveis'])),
                 ])
             )
         page.update()
@@ -199,6 +200,7 @@ def pagina_emprestimo(controller, page):
 
                 page.dialog = dialogo
                 dialogo.open = True
+                carregar_tabela()
                 page.update()
 
         except ValueError as erro:
