@@ -131,26 +131,24 @@ class ControllerDeskCatalog:
     
 #       REALIZANDO EMPRÉSTIMOS
 
-  def fazer_emprestimo(self, emprestimo, nome, categoria, qtd):
+  def confimacao_usuario(self, emprestimo, nome, categoria, qtd):
     emprestimo.validar()
     qtd_banco, pat_validos = self.gerenciador_emprestimo.validar_nu_patrimonio( nome, categoria, qtd)
 
+    if len(pat_validos) == 0:
+        return {"status": "zerado", "qtd": 0, "pat": []}
+    
     if qtd_banco is True:
-      qtd_emprestada = qtd
-      pat_emprestados = pat_validos
-    else:
-      qtd_disponivel = len(pat_validos)
-      confirmacao =  'Função que a view vai retornar'
-      if confirmacao is True:
-        qtd_emprestada = qtd_disponivel
-        pat_emprestados = pat_validos
-      else:
-        return {"status": "cancelado", "mensagem": "Empréstimo cancelado pelo usuário."}
+      return {"status": "ok", "qtd": qtd, "pat": pat_validos}
+    
+    if not qtd_banco or len(pat_validos) < qtd:
+        qtd_disponivel = len(pat_validos)
+        return {"status": "insuficiente", "qtd": qtd_disponivel, "pat": pat_validos}
       
-    emprestado, qtd_emprestimos = self.gerenciador_emprestimo.realizar_emprestimo( emprestimo, qtd_emprestada, pat_emprestados)
+  def fazer_emprestimo(self, emprestimo, qtd, pat_validos):
+    emprestado, qtd_emprestimos = self.gerenciador_emprestimo.realizar_emprestimo( emprestimo, qtd, pat_validos)
     return {"status": "sucesso", "qtd_registrada": qtd_emprestimos}
 
-    
   def fazer_devolucao(self,):
     pass
 

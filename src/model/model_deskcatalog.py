@@ -354,11 +354,15 @@ class GerenciarEmprestimo:
         
         num_patrimonio = self.buscar_nuP_validos_por_id_produto( nome, categoria)
 
-        if not num_patrimonio:
+        if num_patrimonio is None:
             raise ValueError ("Erro: não foi encontrado nenhum número do patrimônio válido para esse produto!")
-    
+
+        if len(num_patrimonio) == 0:
+            raise ValueError ("Não há nenhum item disponível para empréstimo!")
+        
         if len(num_patrimonio) < qtd:
-            raise ValueError ("Erro: a quantidade esse produto não foi encotrada!")
+            #raise ValueError ("Erro: a quantidade esse produto não foi encotrada!")
+            return False, num_patrimonio
     
         pat_validos = []
 
