@@ -1,9 +1,12 @@
 import flet as ft
-from src.database.database import separar_linhas_categoria_informatica
+from src.model.model import separar_o_retorno_por_variavel, pegar_linhas_da_view_do_banco
+linhas = pegar_linhas_da_view_do_banco('visao_informatica')
+informatica = separar_o_retorno_por_variavel(linhas)
+print(informatica)
 
 def criar_card(produto, on_click_disponivel=None, on_click_indisponivel=None):
     nome = produto["Produto"]
-    status = produto["Status"].lower()
+    status = produto["Status"]
     unidades = produto["Unidades"]
 
     if status == "Ativo":
@@ -12,7 +15,7 @@ def criar_card(produto, on_click_disponivel=None, on_click_indisponivel=None):
         on_click = on_click_disponivel
     else:
         cor_botao = ft.Colors.RED_400
-        texto_botao = "Inativo"
+        texto_botao = "Indisponível"
         on_click = on_click_indisponivel
 
     return ft.Container(
@@ -39,7 +42,7 @@ def criar_card(produto, on_click_disponivel=None, on_click_indisponivel=None):
 def main(page: ft.Page):
     page.title = "INFORMÁTICA"
     page.scroll = "auto"
-    cards = [criar_card(p) for p in separar_linhas_categoria_informatica]
+    cards = [criar_card(p) for p in informatica]
     page.add(
         ft.Row(
             controls=cards,
