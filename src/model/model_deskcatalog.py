@@ -424,7 +424,29 @@ class GerenciarEmprestimo:
             rows = cur.fetchall()
             return rows
     
+    def atualizar_status_atrasado(self):
+        sql_update = """UPDATE emprestimos e
+            SET id_disponibilidade = (
+                SELECT id_disponibilidade
+                FROM status_disponibilidade_produto
+                WHERE descricao_disponibilidade = 'Em atraso'
+            )
+            WHERE e.id_disponibilidade = (
+                SELECT id_disponibilidade
+                FROM status_disponibilidade_produto
+                WHERE descricao_disponibilidade = 'Emprestado'
+            )
+            AND e.data_devolucao < CURRENT_DATE; """
     
+        try:
+            with self.conn.cursor() as cur:
+                cur.execute(sql_update)
+                self.conn.commit()
+                return True
+        except Exception as e:
+            self.conn.rollback()
+            raise ValueError(f"Erro ao atualizar atrasados: {e}")
+        
     # DEVOLUCOES 
     '''def buscar_produtos_emprestados(conn):
         sql_select_view = """
@@ -548,28 +570,44 @@ class GerenciarGraficos:
         try:
             with self.conn.cursor() as cur:
                 cur.execute(sql_select)
-                row = cur.fetchone()
-                return {"Ativos": row[0] or 0, "Inativos": row[1] or 0}
+                rows = cur.fetchall()
+                if not rows or not rows[0]:
+                    return {"Ativos": 0, "Inativos": 0}
+                return {"Ativos": rows[0][0], "Inativos": rows[0][1]}
         except Exception as e:
             raise ValueError (f"Erro inesperado ao realizar query: {e}")
         
     def grafico_empCatDiarios(self):
         sql_select = "SELECT * FROM vw_grafico_empCatDia"
         try:
+            resultados = []
             with self.conn.cursor() as cur:
                 cur.execute(sql_select)
-                row = cur.fetchone()
-                return {"Categoria": row[0] or 0, "Qtd": row[1] or 0}
+                rows = cur.fetchall()
+                if not rows:
+                    return resultados
+                else:
+                    for row in rows:
+                        dicio = {"Categoria": row[0] or 0, "Qtd": row[1] or 0}
+                        resultados.append(dicio)
+                    return resultados
         except Exception as e:
             raise ValueError (f"Erro inesperado ao realizar query: {e}")
         
     def grafico_itens_pendentesCat(self):
         sql_select = "SELECT * FROM vw_grafico_itenspencat"
         try:
+            resultados = []
             with self.conn.cursor() as cur:
                 cur.execute(sql_select)
-                row = cur.fetchone()
-                return {"Categoria": row[0] or 0, "Qtd": row[1] or 0}
+                rows = cur.fetchall()
+                if not rows:
+                    return resultados
+                else:
+                    for row in rows:
+                        dicio = {"Categoria": row[0] or 0, "Qtd": row[1] or 0}
+                        resultados.append(dicio)
+                    return resultados
         except Exception as e:
             raise ValueError (f"Erro inesperado ao realizar query: {e}")
 

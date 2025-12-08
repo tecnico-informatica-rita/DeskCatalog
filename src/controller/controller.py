@@ -132,6 +132,7 @@ class ControllerDeskCatalog:
 #       REALIZANDO EMPRÉSTIMOS
 
   def confimacao_usuario(self, emprestimo, nome, categoria, qtd):
+    self.gerenciador_emprestimo.atualizar_status_atrasado()
     emprestimo.validar()
     qtd_banco, pat_validos = self.gerenciador_emprestimo.validar_nu_patrimonio( nome, categoria, qtd)
 
