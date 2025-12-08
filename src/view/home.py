@@ -14,11 +14,103 @@ class home_view:
     def __init__(self):
         pass
 
+    #Página de Resultados da Pesquisa ------------------------------------------------------------------------------------------------------------
+    def pagina_resultados(self, page, termo_busca, produtos_por_categoria):
+        def criar_card(nome, categoria):
+            return ft.Container(
+                width=250,
+                padding=15,
+                border_radius=12,
+                bgcolor=ft.Colors.GREY_50,
+                shadow=ft.BoxShadow(blur_radius=12, spread_radius=1, color="#00000020"),
+                content=ft.Column([
+                    ft.Text(nome, weight=ft.FontWeight.BOLD, size=14),
+                    ft.Text(f"Categoria: {categoria}"),
+                ])
+            )
+        grid = ft.GridView(
+            expand=True,
+            max_extent=260,
+            spacing=20,
+            run_spacing=20
+        )
+
+        termo = termo_busca.lower().strip()
+        encontrou = False
+
+        for categoria, produtos in produtos_por_categoria.items():
+            for produto in produtos:
+                if termo in produto.lower():
+                    grid.controls.append(criar_card(produto, categoria))
+                    encontrou = True
+
+        if not encontrou:
+            grid.controls.append(
+                ft.Text(f"Nenhum item encontrado para “{termo_busca}”.", size=18)
+            )
+        
+        page.views.clear()
+        page.views.append(
+            ft.View(
+                "/resultados",
+                controls=[
+                    ft.AppBar(
+                        title=ft.Text(f"Resultados para: {termo_busca}"),
+                        bgcolor="#b551c7",
+                        leading=ft.IconButton(
+                            icon=ft.Icons.ARROW_BACK,
+                            icon_color="white",
+                            on_click=lambda _: page.go("/")
+                        ),
+                    ),
+                    ft.Container(padding=20, content=grid)
+                ]
+            )
+        )
+        page.update()
+
+    #Home ------------------------------------------------------------------------------------------------------------
     def main(self, page: ft.Page):
         page.title = "Home"
         page.window.resizable = False
         page.theme_mode = ft.ThemeMode.LIGHT
         page.padding = 0
+
+        def rota_mudou(e):
+            page.views.clear()
+            page.views.append(
+                ft.View(
+                    "/",
+                    controls=[page.controls[0]]
+                )
+            )
+            page.update()
+
+        page.on_route_change = rota_mudou
+
+        #Produtos de Teste ------------------------------------------------------------------------------------------------------------
+        produtos_por_categoria = {
+            "Eletrônicos": ["Mouse Gamer", "Teclado Mecânico", "Monitor"],
+            "Móveis": ["Cadeira", "Mesa de Escritório"],
+            "Acessórios": ["Fone de Ouvido", "Cabo"]
+        }
+
+        #Pesquisa de Produtos ---------------------------------------------------------------------------------------------------------------
+        def enviar_pesquisa(e):
+            texto = pesquisa.value.strip()
+            if texto != "":
+                self.pagina_resultados(page, texto, produtos_por_categoria)
+
+        pesquisa = ft.TextField(
+            hint_text="Pesquisa ...",
+            prefix_icon=ft.Icons.SEARCH,
+            border_radius=30,
+            width=500,
+            filled=True,
+            bgcolor="white",
+            border_color="transparent",
+            on_submit=enviar_pesquisa
+        )
 
         #Ajuda ------------------------------------------------------------------------------------------------------------
         def fechar_snack():
@@ -60,17 +152,6 @@ class home_view:
                 ),
 
             ]
-        )
-
-        #Barra de Pesquisa ---------------------------------------------------------------------------------------------------------------
-        pesquisa = ft.TextField(
-            hint_text= "Pesquisa ...",
-            prefix_icon = ft.Icons.SEARCH,
-            border_radius= 30,
-            width= 500,
-            filled= True,
-            bgcolor= "white",
-            border_color= "transparent",
         )
 
         #Gráfico de Barras ---------------------------------------------------------------------------------------------------------------
@@ -224,8 +305,12 @@ class home_view:
                                 ),
                                 ft.Container(
                                     padding= 260,
-                                    alignment = ft.alignment.center,
-                                    content= pesquisa
+                                    alignment = ft.alignment.top_center,
+                                    content= ft.Column(
+                                        [pesquisa],
+                                        horizontal_alignment= ft.CrossAxisAlignment.CENTER,
+                                        spacing= 5
+                                    )
                                 ),
                                 ft.Container(
                                     content=ft.Row(
@@ -238,7 +323,8 @@ class home_view:
                                     right=0,
                                     alignment=ft.alignment.center,
                                 )
-                            ]
+                            ],
+                            clip_behavior=ft.ClipBehavior.NONE
                         ),
                         ft.Row([], alignment= ft.MainAxisAlignment.CENTER),
                         ft.Row([salas, informatica, audio], alignment=ft.MainAxisAlignment.CENTER, spacing=10),
