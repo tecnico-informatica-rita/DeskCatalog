@@ -1,5 +1,4 @@
 import plotly.express as px
-
 import flet as ft
 from flet.plotly_chart import PlotlyChart
 from pesquisa import pagina_resultados
@@ -29,29 +28,16 @@ class home_view:
 
         page.on_route_change = rota_mudou
 
-        #Produtos de Teste ------------------------------------------------------------------------------------------------------------
-        produtos_por_categoria = {
-            "Eletrônicos": ["Mouse Gamer", "Teclado Mecânico", "Monitor"],
-            "Móveis": ["Cadeira", "Mesa de Escritório"],
-            "Acessórios": ["Fone de Ouvido", "Cabo"]
-        }
-
-        #Pesquisa de Produtos ---------------------------------------------------------------------------------------------------------------
-        def enviar_pesquisa(e):
-            texto = pesquisa.value.strip()
-            if texto != "":
-                pagina_resultados(page, texto, produtos_por_categoria)
-
-        pesquisa = ft.TextField(
-            hint_text="Pesquisa ...",
-            prefix_icon=ft.Icons.SEARCH,
-            border_radius=30,
-            width=500,
-            filled=True,
-            bgcolor="white",
-            border_color="transparent",
-            on_submit=enviar_pesquisa
-        )
+        #Ajuda ------------------------------------------------------------------------------------------------------------
+        def fechar(e):
+            try:
+                page.window.destroy()
+            except AttributeError:
+                try:
+                    page.window_destroy()
+                except Exception:
+                    import os
+                    os._exit(0)
 
         #Ajuda ------------------------------------------------------------------------------------------------------------
         def fechar_snack():
@@ -183,13 +169,14 @@ class home_view:
                     height= 40,
                     bgcolor= "white",
                     border_radius= 50,
+                    ink= True,
                     margin = ft.Margin(0,0,10,0),
                     content= ft.Icon(
-                        ft.Icons.PERSON,
+                        ft.Icons.LOGOUT,
                         color= "#b551c7",
                         size= 30
                     ),
-                    on_click= lambda _: print("Perfil clicado!")
+                    on_click= fechar
                 ),
                 ft.Container(
                     width= 40,
@@ -198,16 +185,95 @@ class home_view:
                     border_radius= 50,
                     ink= True,
                     margin = ft.Margin(0,0,20,0),
-                    on_click= abrir_ajuda,
                     content= ft.Icon(
                         ft.Icons.QUESTION_MARK,
                         color= "#b551c7",
                         size= 30
-                    )
+                    ),
+                    on_click= abrir_ajuda
                 )
             ]
         )
 
+        #Produtos de Teste ------------------------------------------------------------------------------------------------------------
+        produtos_por_categoria = {
+            "Eletrônicos": ["Mouse Gamer", "Teclado Mecânico", "Monitor"],
+            "Móveis": ["Cadeira", "Mesa de Escritório"],
+            "Acessórios": ["Fone de Ouvido", "Cabo"]
+        }
+
+        #Autocomplete ---------------------------------------------------------------------------------------------------------------
+        sugestoes = ft.Column(visible=False, spacing=4)
+
+        def selecionar_sugestao(nome):
+            # Preenche o campo, oculta sugestões e dispara pesquisa
+            pesquisa.value = nome
+            sugestoes.controls.clear()
+            sugestoes.visible = False
+            page.update()
+            enviar_pesquisa(None)
+
+        def atualizar_sugestoes(e):
+            texto = pesquisa.value.lower().strip()
+            sugestoes.controls.clear()
+
+            if texto == "":
+                sugestoes.visible = False
+                page.update()
+                return
+
+            # montar lista plana [ "Mouse Gamer", ... ]
+            lista_total = []
+            for categoria, itens in produtos_por_categoria.items():
+                for item in itens:
+                    lista_total.append((item, categoria))  # guardamos categoria para opção futura
+
+            # filtrar por ocorrência (você pode trocar para startswith se preferir)
+            resultados = [(item, cat) for item, cat in lista_total if texto in item.lower()]
+
+            if resultados:
+                # construir controles de sugestão (limitado)
+                for item, cat in resultados[:6]:
+                    sugestoes.controls.append(
+                        ft.Container(
+                            content=ft.Row(
+                                controls=[
+                                    ft.Text(item, size=14),
+                                    ft.Text(f"  — {cat}", size=12, color=ft.colors.GREY),
+                                ],
+                                alignment=ft.MainAxisAlignment.SPACE_BETWEEN
+                            ),
+                            padding=ft.Padding(8, 6, 8, 6),
+                            border_radius=6,
+                            ink=True,
+                            on_click=lambda e, nome=item: selecionar_sugestao(nome)
+                        )
+                    )
+                sugestoes.visible = True
+            else:
+                sugestoes.visible = False
+
+            page.update()
+
+
+        #Pesquisa de Produtos ---------------------------------------------------------------------------------------------------------------
+        def enviar_pesquisa(e):
+            texto = pesquisa.value.strip()
+            if texto != "":
+                pagina_resultados(page, texto, produtos_por_categoria)
+
+        pesquisa = ft.TextField(
+            hint_text="Pesquisa ...",
+            prefix_icon=ft.Icons.SEARCH,
+            border_radius=30,
+            width=500,
+            filled=True,
+            bgcolor="white",
+            border_color="transparent",
+            on_submit=enviar_pesquisa,
+            on_change= atualizar_sugestoes
+        )
+        
         #Botões ---------------------------------------------------------------------------------------------------------------
         def botao_de_categoria(text):
             return ft.ElevatedButton(
@@ -248,7 +314,11 @@ class home_view:
                                     padding= 260,
                                     alignment = ft.alignment.top_center,
                                     content= ft.Column(
-                                        [pesquisa],
+                                        [pesquisa,
+                                         ft.Container(
+                                                width=500,
+                                                content=sugestoes
+                                            )],
                                         horizontal_alignment= ft.CrossAxisAlignment.CENTER,
                                         spacing= 5
                                     )
