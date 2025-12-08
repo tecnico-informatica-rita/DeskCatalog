@@ -41,6 +41,7 @@ def Autenticar_senha(senha):
 #print(Autenticar_senha('Anaclara6600'))
 #print(enviar_email('anaclaragamair15@gmail.com'))
 
+
 #FUNÇÃO PARA REUNIR INFORMAÇOES POR CATEGORIA NO BANCO
 def pegar_linhas_da_view_do_banco(nome_view):
     """Essa função retorna a visao de determinada categoria"""
