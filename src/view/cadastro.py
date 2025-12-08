@@ -1,136 +1,135 @@
 import flet as ft
+from mock_model import Produto
 
-class cadastro_view:
-    def __init__(self):
-        pass
+def pagina_produtos(controller, page):
 
-    def main(self, page: ft.Page):
-        page.title = "Cadastro"
-        page.window.resizable = False
-        page.theme_mode = ft.ThemeMode.LIGHT
-        page.padding = 0
+    # ----- BUSCAS INICIAIS -----
+    categorias = controller.gerenciador_produto.buscar_nome_categorias()
+    status_lista = controller.gerenciador_produto.buscar_status()
+    nomes_existentes = controller.gerenciador_produto.buscar_nomes_produtos_existentes()
 
-        #Ajuda ------------------------------------------------------------------------------------------------------------
-        def fechar_snack():
-            snack_bar.open = False
-            page.update()
-        
-        snack_bar = ft.SnackBar(
-                content=ft.Text("Use o filtro para ver os itens disponíveis e/ou indisponíveis."),
-                action="OK",
-                on_action=lambda _: fechar_snack(),
-                duration=9000 )
-        
-        page.overlay.append(snack_bar)
+    # ========== COMPONENTES ==========
+    search_input = ft.TextField(label="Buscar Produto", width=300, on_change=lambda e: atualizar_autocomplete(e))
+    autocomplete = ft.Column()  # aparecerá a lista de sugestões
+    nome_produto = ft.TextField(label="Nome do Produto (caso não exista no catálogo)", width=300, visible=False)
+    combo_categoria = ft.Dropdown(label="Categoria", width=200,
+                                  options=[ft.dropdown.Option(x) for x in categorias])
+    combo_status = ft.Dropdown(label="Status", width=200,
+                               options=[ft.dropdown.Option(x) for x in status_lista])
+    campo_qtd = ft.TextField(label="Quantidade", width=150, keyboard_type=ft.KeyboardType.NUMBER)
 
-        def abrir_ajuda(e):
-            snack_bar.open = True
-            page.update()
+    tabela = ft.DataTable(
+        columns=[
+            ft.DataColumn(ft.Text("Categoria")),
+            ft.DataColumn(ft.Text("Nome")),
+            ft.DataColumn(ft.Text("Quantidade total")),
+            ft.DataColumn(ft.Text("Quantidade de ativos")),
+        ],
+        rows=[]
+    )
 
-        #Início Menu ---------------------------------------------------------------------------------------------------------------
-        page.drawer = ft.NavigationDrawer(
-            controls= [
-                ft.NavigationDrawerDestination(
-                    label= "Cadastrar Item", icon= ft.Icons.ADD_CIRCLE
-                ),
-                ft.NavigationDrawerDestination(
-                    label= "Empréstimo", icon= ft.Icons.WIDGETS
-                ),
-                ft.NavigationDrawerDestination(
-                    label= "Devolução", icon= ft.Icons.REPLAY
-                ),
-                ft.NavigationDrawerDestination(
-                    label= "Ajustar Empréstimo", icon= ft.Icons.SETTINGS_OUTLINED
-                ),
-                ft.NavigationDrawerDestination(
-                    label= "Imprimir Relatório", icon= ft.Icons.DOWNLOAD
-                ),
-                ft.NavigationDrawerDestination(
-                    label= "Início", icon= ft.Icons.HOME
+    # ===== FUNÇÕES LÓGICAS =====
+    def atualizar_autocomplete(e):
+        texto = search_input.value.strip().title()
+        autocomplete.controls.clear()
+
+        if texto != "":
+            sugestoes = [n for n in nomes_existentes if texto in n]
+            for s in sugestoes:
+                autocomplete.controls.append(
+                    ft.TextButton(text=s, on_click=lambda x, v=s: selecionar_sugestao(v))
                 )
-            ]
-        )
 
-        #Barra de Menu ------------------------------------------------------------------------------------------------------------
-        page.appbar = ft.AppBar(
-            leading= ft.Container(
-                width= 50,
-                height= 50,
-                bgcolor= "#b551c7",
-                border_radius= 50,
-                content= ft.Row(
-                    controls=[
-                        ft.IconButton(
-                        icon= ft.Icons.MENU,
-                        icon_size= 30,
-                        icon_color= "white",
-                        on_click= lambda _: page.open(page.drawer)
-                        )
-                    ],
-                    alignment= ft.MainAxisAlignment.CENTER,
-                    vertical_alignment= ft.CrossAxisAlignment.CENTER
-                ),
-            ),
-            title= ft.Text("", size=22, color=ft.Colors.WHITE),
-            bgcolor= "#b551c7",
-            actions= [
-                ft.Container(
-                    width= 40,
-                    height= 40,
-                    bgcolor= "white",
-                    border_radius= 50,
-                    ink= True,
-                    margin = ft.Margin(0,0,20,0),
-                    on_click= abrir_ajuda,
-                    content= ft.Icon(
-                        ft.Icons.QUESTION_MARK,
-                        color= "#b551c7",
-                        size= 30
-                    )
-                )
-            ]
-        )
+        # Verifica se mostra campo de novo produto
+        nome_produto.visible = (texto != "" and texto not in nomes_existentes)
 
-        #Inicio dos Cards ---------------------------------------------------------------------------------------------------------
-        
-        
-        #Início Filtro ------------------------------------------------------------------------------------------------------------
-        
+        page.update()
 
-        #Estilização da Página ------------------------------------------------------------------------------------------------------------
-        page.add(
-            ft.Container(
-                expand=True,
-                bgcolor="#ffffff",
-                padding=ft.Padding(0, 0, 0, 0),
-                content=ft.Column(
-                    [
-                        ft.Container(
-                            height=250,
-                            expand=True,
-                            image=ft.DecorationImage(
-                                src="img/cadastro.gif",
-                                fit=ft.ImageFit.COVER),
-                        ),
-                        
-                        ft.Container(
-                            padding= ft.Padding(30, 0, 30, 5),
-                            
-                        ),
-                    ],
-                    expand=True,
-                    scroll=ft.ScrollMode.AUTO,
-                    alignment=ft.MainAxisAlignment.START,
-                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                    spacing=20,
-                )
+    def selecionar_sugestao(valor):
+        search_input.value = valor
+        nome_produto.visible = False
+        autocomplete.controls.clear()
+        page.update()
+
+    def carregar_tabela(e=None):
+        tabela.rows.clear()
+        # ✅ Aqui usamos corretamente o gerenciador_produto
+        dados = controller.gerenciador_produto.exibir_todosP_qtd()
+
+        for item in dados:
+            tabela.rows.append(
+                ft.DataRow(cells=[
+                    ft.DataCell(ft.Text(str(item['categoria']))),
+                    ft.DataCell(ft.Text(item['nome'])),
+                    ft.DataCell(ft.Text(item['total_produtos'])),
+                    ft.DataCell(ft.Text(item['total_ativo'])),
+                ])
             )
-        )
 
+        page.update()
 
+    def cadastrar_produto(e):
+        try:
+            nome = nome_produto.value if nome_produto.visible else search_input.value
 
-def main(page: ft.Page):
-    view = cadastro_view()
-    view.main(page)
+            prod = Produto(
+                nome=nome,
+                categoria=combo_categoria.value,
+                quantidade=campo_qtd.value,
+                status=combo_status.value
+            )
 
-ft.app(target=main)
+            print("🛠 Produto criado na view:", prod.__dict__)
+
+            # ✅ Chamada ao método do gerenciador_produto
+            resposta = controller.gerenciador_produto.adicionar_produto(prod)
+
+            # Se for novo nome, adiciona na lista usada pelo autocomplete
+            if prod.nome not in nomes_existentes:
+                nomes_existentes.append(prod.nome)
+
+            carregar_tabela()
+
+            # ====== MOSTRAR SNACKBAR ======
+            if resposta["status"] == "ok":
+                snackbar = ft.SnackBar(ft.Text(resposta["mensagem"]), bgcolor="green")
+            elif resposta["status"] == 'erro':
+                snackbar = ft.SnackBar(ft.Text(resposta["mensagem"]), bgcolor="red")
+
+            page.overlay.append(snackbar)
+            snackbar.open = True
+
+        except ValueError as erro:
+            texto = str(erro)
+            snackbar = ft.SnackBar(ft.Text(f"⚠ {texto}"), bgcolor="red")
+            page.overlay.append(snackbar)
+            snackbar.open = True
+
+        finally:
+            # ====== LIMPAR CAMPOS ======
+            nome_produto.value = ""
+            search_input.value = ""
+            campo_qtd.value = ""
+            combo_categoria.value = None
+            combo_status.value = None
+            combo_categoria.update()
+            combo_status.update()
+            nome_produto.visible = False
+            autocomplete.controls.clear()
+            page.update()
+
+    # ========== LAYOUT ==========
+    layout_principal = ft.Column([
+        ft.Text("📦 Catálogo de Produtos", size=20, weight=ft.FontWeight.BOLD),
+        search_input,
+        autocomplete,
+        ft.Row([combo_categoria, combo_status, campo_qtd]),
+        nome_produto,
+        ft.ElevatedButton("Cadastrar", on_click=cadastrar_produto),
+        ft.Divider(),
+        ft.Text("📋 Produtos Registrados", size=18),
+        tabela
+    ])
+
+    carregar_tabela()
+    return layout_principal
