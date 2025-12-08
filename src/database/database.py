@@ -93,3 +93,30 @@ def criar_tabelas(conn):
     except Exception as e:
         print(f"❌ Erro ao criar tabelas: {e}")
         conn.rollback()
+
+
+def popular_dados_login(lista_email_senha):
+    """insere o login realizado no banco de dados"""
+    try:
+        conn = get_db_connection()
+        with conn.cursor() as cursor:
+            
+            cursor.executemany(
+                """
+                INSERT INTO loguin_informacoes(email_login, senha_login)
+                VALUES (%s, %s)
+                ON CONFLICT (email_login) DO NOTHING;
+                """,
+                lista_email_senha
+            )
+            conn.commit()
+            
+            linhas = cursor.rowcount   #conta qts linhas inseriu
+
+            if linhas == 0:
+                return False, "⚠️ Email já existe no banco!"
+
+            return True, "Inserido com sucesso!"
+
+    except Exception as e:
+        return False, f"❌ Erro ao salvar no banco: {str(e)}"

@@ -8,6 +8,7 @@ Camada Controller (Controle):
 """
 import src.view.view as view
 from src.model.model import pegar_linhas_da_view_do_banco, separar_o_retorno_por_variavel
+from src.login.enviar_email import enviar_email, Autenticar_senha
 
 def dividir_retorno_por_variavel(nome_view):
     try:
@@ -19,3 +20,23 @@ def dividir_retorno_por_variavel(nome_view):
       return "Algum erro inesperado aconteceu: {e}"
 
 print(dividir_retorno_por_variavel('visao_informatica'))
+
+
+def autenticar_loguin_completo(usuario, senha):
+    """
+    Retorna True se:
+    email for enviado com sucesso
+    senha validada
+    """
+    try:
+        email_ok = enviar_email(usuario)
+        senha_ok = Autenticar_senha(senha)
+        if email_ok and senha_ok:
+            return True
+        else:
+            return False
+
+    except Exception as e:
+        print("Erro ao autenticar:", e)
+        return False
+print(autenticar_loguin_completo('deskcatalogprojeto@gmail.com', '1770jjkiçl'))
