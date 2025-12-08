@@ -43,7 +43,7 @@ def main(page: ft.Page):
             ft.Column(
                 [
                     ft.Text(" FASE DE TESTE ", size=30, weight=ft.FontWeight.BOLD),
-                    ft.Text("O botão de login funcionou caralhoooooooooo"),
+                    ft.Text("O botão de login funcionouuu"),
                     ft.ElevatedButton("Voltar ao login", on_click=voltar_login)
                 ],
                 alignment=ft.MainAxisAlignment.CENTER,

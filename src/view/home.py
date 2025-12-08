@@ -2,7 +2,7 @@ import plotly.express as px
 
 import flet as ft
 from flet.plotly_chart import PlotlyChart
-from pesquisa import pagina_resultados
+from src.view.pesquisa import pagina_resultados
 
 # tive que instalar o flet: pip install flet
 # tive que atualizar o flet com: pip install "flet[all]==0.25.2" --upgrade

@@ -1,7 +1,7 @@
 import flet as ft
 from src.model.model import separar_o_retorno_por_variavel, pegar_linhas_da_view_do_banco
-linhas = pegar_linhas_da_view_do_banco('visao_informatica')
-separar_linhas_categoria_informatica = separar_o_retorno_por_variavel(linhas)
+linhas = pegar_linhas_da_view_do_banco('visao_audio_e_video')
+separar_linhas_categoria_audio_e_video = separar_o_retorno_por_variavel(linhas)
 
 class informatica_view:
     def __init__(self):
@@ -164,14 +164,14 @@ class informatica_view:
             run_spacing=20
         )
 
-        for p in separar_linhas_categoria_informatica:
+        for p in separar_linhas_categoria_audio_e_video:
             grid.controls.append(criar_card(p))
         
         #Início Filtro ------------------------------------------------------------------------------------------------------------
         def filtrar_status(status):
             grid.controls.clear()
 
-            for p in separar_linhas_categoria_informatica:
+            for p in separar_linhas_categoria_audio_e_video:
                 if status == "todos":
                     grid.controls.append(criar_card(p))
                 elif status == "ativo":

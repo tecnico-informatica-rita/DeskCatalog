@@ -1,17 +1,7 @@
 import flet as ft
-
-#Teste sem o BD ---------------------------------------------------------------------------------------------------------------
-separar_linhas_categoria_informatica = [
-    {"Produto": "Mouse Gamer", "Status": "Ativo", "Unidades": 12},
-    {"Produto": "Teclado Mecânico", "Status": "Indisponível", "Unidades": 0},
-    {"Produto": "Monitor 24\"", "Status": "Em Manutenção", "Unidades": 5},
-    {"Produto": "Mouse Gamer", "Status": "ativo", "Unidades": 12},
-    {"Produto": "Teclado Mecânico", "Status": "Indisponível", "Unidades": 0},
-    {"Produto": "Monitor 24\"", "Status": "Inativo", "Unidades": 5},
-    {"Produto": "Mouse Gamer", "Status": "Ativo", "Unidades": 12},
-    {"Produto": "Teclado Mecânico", "Status": "Sla", "Unidades": 0},
-    {"Produto": "Monitor 24\"", "Status": "Ativo", "Unidades": 5}
-    ]
+from src.model.model import separar_o_retorno_por_variavel, pegar_linhas_da_view_do_banco
+linhas = pegar_linhas_da_view_do_banco('visao_outros')
+separar_linhas_categoria_outros = separar_o_retorno_por_variavel(linhas)
 
 class outros_view:
     def __init__(self):
@@ -175,14 +165,14 @@ class outros_view:
             run_spacing=20
         )
 
-        for p in separar_linhas_categoria_informatica:
+        for p in separar_linhas_categoria_outros:
             grid.controls.append(criar_card(p))
         
         #Início Filtro ------------------------------------------------------------------------------------------------------------
         def filtrar_status(status):
             grid.controls.clear()
 
-            for p in separar_linhas_categoria_informatica:
+            for p in separar_linhas_categoria_outros:
                 if status == "todos":
                     grid.controls.append(criar_card(p))
                 elif status == "ativo":

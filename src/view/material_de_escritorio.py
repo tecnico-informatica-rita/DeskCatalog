@@ -1,42 +1,48 @@
 import flet as ft
 from src.model.model import separar_o_retorno_por_variavel, pegar_linhas_da_view_do_banco
-linhas = pegar_linhas_da_view_do_banco('visao_informatica')
-separar_linhas_categoria_informatica = separar_o_retorno_por_variavel(linhas)
-
-class informatica_view:
+linhas = pegar_linhas_da_view_do_banco('visao_material_de_escritorio')
+print(linhas)
+separar_linhas_categoria_material = separar_o_retorno_por_variavel(linhas)
+print(separar_linhas_categoria_material)
+class material_view:
     def __init__(self):
         pass
 
+    
     def main(self, page: ft.Page):
-        page.title = "Informática"
+        page.title = "Material de Escritório"
         page.window.resizable = False
         page.theme_mode = ft.ThemeMode.LIGHT
         page.padding = 0
 
         #Ajuda ------------------------------------------------------------------------------------------------------------
         def fechar_snack():
-            page.snack_bar.open = False
+            snack_bar.open = False
             page.update()
         
-        page.snack_bar = ft.SnackBar(
+        snack_bar = ft.SnackBar(
                 content=ft.Text("Use o filtro para ver os itens disponíveis e/ou indisponíveis."),
                 action="OK",
                 on_action=lambda _: fechar_snack(),
                 duration=9000 )
         
+        page.overlay.append(snack_bar)
+
         def abrir_ajuda(e):
-        
-            page.snack_bar.open = True
+            snack_bar.open = True
             page.update()
 
         #Início Menu ---------------------------------------------------------------------------------------------------------------
         page.drawer = ft.NavigationDrawer(
             controls= [
                 ft.NavigationDrawerDestination(
-                    label= "Informática", icon= ft.Icons.LAPTOP
+                    label= "Material de Escritório", icon= ft.Icons.EDIT
                 ),
                 ft.NavigationDrawerDestination(
                     label= "Sala / Laboratório", icon= ft.Icons.BIOTECH
+                ),
+                ft.NavigationDrawerDestination(
+                    label= "Informática", icon= ft.Icons.LAPTOP
                 ),
                 ft.NavigationDrawerDestination(
                     label= "Áudio / Vídeo", icon= ft.Icons.VIDEO_CAMERA_FRONT
@@ -46,9 +52,6 @@ class informatica_view:
                 ),
                 ft.NavigationDrawerDestination(
                     label= "Mobiliário", icon= ft.Icons.WEEKEND
-                ),
-                ft.NavigationDrawerDestination(
-                    label= "Material de Escritório", icon= ft.Icons.EDIT
                 ),
                 ft.NavigationDrawerDestination(
                     label= "Segurança", icon= ft.Icons.SECURITY
@@ -164,14 +167,14 @@ class informatica_view:
             run_spacing=20
         )
 
-        for p in separar_linhas_categoria_informatica:
+        for p in separar_linhas_categoria_material:
             grid.controls.append(criar_card(p))
         
         #Início Filtro ------------------------------------------------------------------------------------------------------------
         def filtrar_status(status):
             grid.controls.clear()
 
-            for p in separar_linhas_categoria_informatica:
+            for p in separar_linhas_categoria_material:
                 if status == "todos":
                     grid.controls.append(criar_card(p))
                 elif status == "ativo":
@@ -194,7 +197,7 @@ class informatica_view:
                             height=250,
                             expand=True,
                             image=ft.DecorationImage(
-                                src="img/informatica.gif",
+                                src="img/material_escritorio.gif",
                                 fit=ft.ImageFit.COVER),
                         ),
                         
@@ -215,7 +218,7 @@ class informatica_view:
 
 
 def main(page: ft.Page):
-    view = informatica_view()
+    view = material_view()
     view.main(page)
 
 ft.app(target=main)

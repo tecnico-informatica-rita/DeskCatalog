@@ -1,17 +1,8 @@
 import flet as ft
+from src.model.model import separar_o_retorno_por_variavel, pegar_linhas_da_view_do_banco
+linhas = pegar_linhas_da_view_do_banco('visao_audio_e_video')
+separar_linhas_categoria_audio = separar_o_retorno_por_variavel(linhas)
 
-#Teste sem o BD ---------------------------------------------------------------------------------------------------------------
-separar_linhas_categoria_informatica = [
-    {"Produto": "Mouse Gamer", "Status": "Ativo", "Unidades": 12},
-    {"Produto": "Teclado Mecânico", "Status": "Indisponível", "Unidades": 0},
-    {"Produto": "Monitor 24\"", "Status": "Em Manutenção", "Unidades": 5},
-    {"Produto": "Mouse Gamer", "Status": "ativo", "Unidades": 12},
-    {"Produto": "Teclado Mecânico", "Status": "Indisponível", "Unidades": 0},
-    {"Produto": "Monitor 24\"", "Status": "Inativo", "Unidades": 5},
-    {"Produto": "Mouse Gamer", "Status": "Ativo", "Unidades": 12},
-    {"Produto": "Teclado Mecânico", "Status": "Sla", "Unidades": 0},
-    {"Produto": "Monitor 24\"", "Status": "Ativo", "Unidades": 5}
-    ]
 
 class audio_view:
     def __init__(self):
@@ -175,14 +166,14 @@ class audio_view:
             run_spacing=20
         )
 
-        for p in separar_linhas_categoria_informatica:
+        for p in separar_linhas_categoria_audio:
             grid.controls.append(criar_card(p))
         
         #Início Filtro ------------------------------------------------------------------------------------------------------------
         def filtrar_status(status):
             grid.controls.clear()
 
-            for p in separar_linhas_categoria_informatica:
+            for p in separar_linhas_categoria_audio:
                 if status == "todos":
                     grid.controls.append(criar_card(p))
                 elif status == "ativo":
