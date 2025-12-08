@@ -2,6 +2,7 @@ import plotly.express as px
 
 import flet as ft
 from flet.plotly_chart import PlotlyChart
+from pesquisa import pagina_resultados
 
 # tive que instalar o flet: pip install flet
 # tive que atualizar o flet com: pip install "flet[all]==0.25.2" --upgrade
@@ -14,62 +15,6 @@ class home_view:
     def __init__(self):
         pass
 
-    #Página de Resultados da Pesquisa ------------------------------------------------------------------------------------------------------------
-    def pagina_resultados(self, page, termo_busca, produtos_por_categoria):
-        def criar_card(nome, categoria):
-            return ft.Container(
-                width=250,
-                padding=15,
-                border_radius=12,
-                bgcolor=ft.Colors.GREY_50,
-                shadow=ft.BoxShadow(blur_radius=12, spread_radius=1, color="#00000020"),
-                content=ft.Column([
-                    ft.Text(nome, weight=ft.FontWeight.BOLD, size=14),
-                    ft.Text(f"Categoria: {categoria}"),
-                ])
-            )
-        grid = ft.GridView(
-            expand=True,
-            max_extent=260,
-            spacing=20,
-            run_spacing=20
-        )
-
-        termo = termo_busca.lower().strip()
-        encontrou = False
-
-        for categoria, produtos in produtos_por_categoria.items():
-            for produto in produtos:
-                if termo in produto.lower():
-                    grid.controls.append(criar_card(produto, categoria))
-                    encontrou = True
-
-        if not encontrou:
-            grid.controls.append(
-                ft.Text(f"Nenhum item encontrado para “{termo_busca}”.", size=18)
-            )
-        
-        page.views.clear()
-        page.views.append(
-            ft.View(
-                "/resultados",
-                controls=[
-                    ft.AppBar(
-                        title=ft.Text(f"Resultados para: {termo_busca}"),
-                        bgcolor="#b551c7",
-                        leading=ft.IconButton(
-                            icon=ft.Icons.ARROW_BACK,
-                            icon_color="white",
-                            on_click=lambda _: page.go("/")
-                        ),
-                    ),
-                    ft.Container(padding=20, content=grid)
-                ]
-            )
-        )
-        page.update()
-
-    #Home ------------------------------------------------------------------------------------------------------------
     def main(self, page: ft.Page):
         page.title = "Home"
         page.window.resizable = False
@@ -77,13 +22,9 @@ class home_view:
         page.padding = 0
 
         def rota_mudou(e):
-            page.views.clear()
-            page.views.append(
-                ft.View(
-                    "/",
-                    controls=[page.controls[0]]
-                )
-            )
+            if page.route == "/":
+                page.views.clear()
+                page.views.append(ft.View("/", controls=page.controls))
             page.update()
 
         page.on_route_change = rota_mudou
@@ -99,7 +40,7 @@ class home_view:
         def enviar_pesquisa(e):
             texto = pesquisa.value.strip()
             if texto != "":
-                self.pagina_resultados(page, texto, produtos_por_categoria)
+                pagina_resultados(page, texto, produtos_por_categoria)
 
         pesquisa = ft.TextField(
             hint_text="Pesquisa ...",
@@ -340,9 +281,8 @@ class home_view:
             )
         )
 
-
 def main(page: ft.Page):
-    view = home_view()
-    view.main(page)
+    home = home_view()
+    home.main(page)
 
 ft.app(target=main)
