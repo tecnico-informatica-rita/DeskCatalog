@@ -424,6 +424,7 @@ class GerenciarEmprestimo:
             rows = cur.fetchall()
             return rows
     
+    
     # DEVOLUCOES 
     '''def buscar_produtos_emprestados(conn):
         sql_select_view = """
