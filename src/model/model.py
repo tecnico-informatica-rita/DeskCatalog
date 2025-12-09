@@ -78,17 +78,18 @@ def separar_o_retorno_por_variavel_relatorio_30_dias(lista):
     com as colunas da view 'visao_itens_para_devolucao_30_dias'
     """
     try:
-        produtos = []
-        for nome_produto, pessoa, data_emprestimo, status, quantidade in produtos:
-            produtos.append({
+        resultado = []
+        for nome_produto, nome_pessoa, id_disponibilidade, data, quantidade, status in lista:
+            resultado.append({
                 "Produto": nome_produto,
-                "Pessoa": pessoa,
-                "Data_emprestimo": data_emprestimo.strftime("%d/%m/%Y") if data_emprestimo else None,
-                "Status": status,
-                "Quantidade": quantidade
+                "Pessoa": nome_pessoa,
+                "ID_Disponibilidade": id_disponibilidade,
+                "Data_Emprestimo": data,
+                "Quantidade": quantidade,
+                "Status": status
             })
+        return resultado
 
-        return produtos
     except Exception as e:
         return f"Um erro inesperado aconteceu: {e}"
     

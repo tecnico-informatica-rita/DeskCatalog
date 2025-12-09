@@ -41,9 +41,13 @@ def autenticar_loguin_completo(usuario, senha):
 def mostrar_informaçoes_dos_ultimos_30_dias():
     try:
         lista = pegar_linhas_da_view_do_banco('visao_itens_para_devolucao_30_dias')
+        print("DEBUG consulta view:", lista) 
+
         resultado = separar_o_retorno_por_variavel_relatorio_30_dias(lista)
+        print("DEBUG dicionarios:", resultado)
+
         return resultado
-    
+
     except Exception as e:
         return f"um erro inesperado aconteceu: {e}"
     
