@@ -36,8 +36,7 @@ class cadastro_view:
                 ft.NavigationDrawerDestination("Cadastrar Item", icon=ft.Icons.ADD_CIRCLE),
                 ft.NavigationDrawerDestination("Empréstimo", icon=ft.Icons.WIDGETS),
                 ft.NavigationDrawerDestination("Devolução", icon=ft.Icons.REPLAY),
-                ft.NavigationDrawerDestination("Ajustar Empréstimo", icon=ft.Icons.SETTINGS_OUTLINED),
-                ft.NavigationDrawerDestination("Imprimir Relatório", icon=ft.Icons.DOWNLOAD),
+                ft.NavigationDrawerDestination("Relatório", icon=ft.Icons.DOWNLOAD),
                 ft.NavigationDrawerDestination("Início", icon=ft.Icons.HOME)
             ]
         )
@@ -249,6 +248,7 @@ class cadastro_view:
                                 bgcolor="white",
                                 border_radius=40,
                                 padding=40,
+                                margin=ft.Margin(0, -60, 0, 0), 
                                 shadow=ft.BoxShadow(
                                     blur_radius=20,
                                     spread_radius=5,

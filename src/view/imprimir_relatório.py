@@ -29,11 +29,10 @@ class Relatorio30DiasView:
         #Início Menu ---------------------------------------------------------------------------------------------------------------
         page.drawer = ft.NavigationDrawer(
             controls=[
-                ft.NavigationDrawerDestination("Imprimir Relatório", icon=ft.Icons.DOWNLOAD),
+                ft.NavigationDrawerDestination("Relatório", icon=ft.Icons.DOWNLOAD),
                 ft.NavigationDrawerDestination("Cadastrar Item", icon=ft.Icons.ADD_CIRCLE),
                 ft.NavigationDrawerDestination("Empréstimo", icon=ft.Icons.WIDGETS),
                 ft.NavigationDrawerDestination("Devolução", icon=ft.Icons.REPLAY),
-                ft.NavigationDrawerDestination("Ajustar Empréstimo", icon=ft.Icons.SETTINGS_OUTLINED),
                 ft.NavigationDrawerDestination("Início", icon=ft.Icons.HOME)
             ]
         )

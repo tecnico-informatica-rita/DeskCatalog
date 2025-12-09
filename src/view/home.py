@@ -1,3 +1,4 @@
+import pandas as pd
 import plotly.express as px
 import flet as ft
 from flet.plotly_chart import PlotlyChart
@@ -28,6 +29,30 @@ class home_view:
 
         page.on_route_change = rota_mudou
 
+        #Produtos de Teste ------------------------------------------------------------------------------------------------------------
+        produtos_por_categoria = {
+            "Eletrônicos": ["Mouse Gamer", "Teclado Mecânico", "Monitor"],
+            "Móveis": ["Cadeira", "Mesa de Escritório"],
+            "Acessórios": ["Fone de Ouvido", "Cabo"]
+        }
+
+        #Pesquisa de Produtos ---------------------------------------------------------------------------------------------------------------
+        def enviar_pesquisa(e):
+            texto = pesquisa.value.strip()
+            if texto != "":
+                pagina_resultados(page, texto, produtos_por_categoria)
+
+        pesquisa = ft.TextField(
+            hint_text="Pesquisa ...",
+            prefix_icon=ft.Icons.SEARCH,
+            border_radius=30,
+            width=500,
+            filled=True,
+            bgcolor="white",
+            border_color="transparent",
+            on_submit=enviar_pesquisa
+        )
+        
         #Ajuda ------------------------------------------------------------------------------------------------------------
         def fechar(e):
             try:
@@ -72,75 +97,79 @@ class home_view:
                     label= "Devolução", icon= ft.Icons.REPLAY
                 ),
                 ft.NavigationDrawerDestination(
-                    label= "Ajustar Empréstimo", icon= ft.Icons.SETTINGS_OUTLINED
-                ),
-                ft.NavigationDrawerDestination(
-                    label= "Imprimir Relatório", icon= ft.Icons.DOWNLOAD
+                    label= "Relatório", icon= ft.Icons.DOWNLOAD
                 ),
 
             ]
         )
 
         #Gráfico de Barras ---------------------------------------------------------------------------------------------------------------
-        dadosb = {
-            "Item": ["Item 1", "Item 2", "Item 3", "Item 4"],
-            "Valor": [8, 12, 16, 20]
-        }
+        dadosb = [ 
+            {"Categoria": "Eletrônicos", "Qtd": 15},
+            {"Categoria": "Móveis", "Qtd": 5},
+            {"Categoria": "Periféricos", "Qtd": 20}
+        ]
 
+        df_barra = pd.DataFrame(dadosb)
         barra = px.bar(
-            dadosb, 
-            x="Item", 
-            y="Valor", 
-            title="Gráfico de Barras", 
-            color="Item",
-            color_discrete_sequence=["#d2b0e9", "#e067c7", "#b551c7","#00357a"])
+            df_barra, 
+            x="Categoria",      
+            y="Qtd",             
+            title="Empréstimos Diários por Categoria", 
+            color="Categoria",   
+            color_discrete_sequence=["#d2b0e9", "#e067c7", "#b551c7", "#00357a"]
+        )
 
-        grafico_barra =  ft.Container(
-            content= PlotlyChart(barra, expand=True),
-            width= 425,
-            height= 375
+        grafico_barra = ft.Container(
+            content=PlotlyChart(barra, expand=True),
+            width=425,
+            height=375
         )
 
         #Gráfico de Pizza ---------------------------------------------------------------------------------------------------------------
         dadosp = {
-            "Item": ["Item 5", "Item 6", "Item 7", "Item 8"],
-            "Percentual": [8, 12, 16, 20]
-        }
+            "Ativos": 10, 
+            "Inativos": 3}
 
+        df_pizza = pd.DataFrame({
+            "Item": list(dadosp.keys()),
+            "Percentual": list(dadosp.values())
+        })
         pizza = px.pie(
-            dadosp,
-            names= "Item", 
-            values= "Percentual", 
-            title= "Distribuição",
-            color_discrete_sequence=["#d2b0e9", "#e067c7", "#b551c7","#00357a"])
+            df_pizza,
+            names="Item",
+            values="Percentual",
+            title="Ativos e Inativos",
+            color_discrete_sequence=["#d2b0e9", "#e067c7", "#b551c7", "#00357a"]
+        )
 
-        grafico_pizza =  ft.Container(
-            content= PlotlyChart(pizza, expand=True),
-            width= 425,
-            height= 375
+        grafico_pizza = ft.Container(
+            content=PlotlyChart(pizza, expand=True),
+            width=425,
+            height=375
         )
 
         #Gráfico de Barras Empilhadas ---------------------------------------------------------------------------------------------------------------
-        dadose = {
-            "Item": ["Item 5", "Item 6", "Item 7", "Item 8"],
-            "Série 9": [8, 12, 16, 20],
-            "Série 10": [8, 12, 16, 20],
-            "Série 11": [8, 12, 16, 20]
-        }
+        dadose = [
+            {"Categoria": "Livros", "Qtd": 8},
+            {"Categoria": "Ferramentas", "Qtd": 3},
+        ]
+
+        df_barras = pd.DataFrame(dadose)
 
         empilhado = px.bar(
-            dadose, 
-            x= "Item", 
-            y=["Série 9", "Série 10", "Série 11"], 
-            title= "Barras Empilhadas",
-            color_discrete_sequence=["#d2b0e9", "#e067c7","#00357a"])
- 
-        grafico_empilhado =  ft.Container(
-            content= PlotlyChart(empilhado, expand=True),
-            width= 425,
-            height= 375
+            df_barras,
+            x="Categoria",
+            y=[col for col in df_barras.columns if col != "Categoria"],  
+            title="Itens Pendentes por Categoria",
+            color_discrete_sequence=["#d2b0e9", "#e067c7", "#00357a"]
         )
 
+        grafico_empilhado = ft.Container(
+            content=PlotlyChart(empilhado, expand=True),
+            width=425,
+            height=375
+        )
         #Início Menu ---------------------------------------------------------------------------------------------------------------
         page.appbar = ft.AppBar(
             leading= ft.Container(
@@ -195,85 +224,6 @@ class home_view:
             ]
         )
 
-        #Produtos de Teste ------------------------------------------------------------------------------------------------------------
-        produtos_por_categoria = {
-            "Eletrônicos": ["Mouse Gamer", "Teclado Mecânico", "Monitor"],
-            "Móveis": ["Cadeira", "Mesa de Escritório"],
-            "Acessórios": ["Fone de Ouvido", "Cabo"]
-        }
-
-        #Autocomplete ---------------------------------------------------------------------------------------------------------------
-        sugestoes = ft.Column(visible=False, spacing=4)
-
-        def selecionar_sugestao(nome):
-            # Preenche o campo, oculta sugestões e dispara pesquisa
-            pesquisa.value = nome
-            sugestoes.controls.clear()
-            sugestoes.visible = False
-            page.update()
-            enviar_pesquisa(None)
-
-        def atualizar_sugestoes(e):
-            texto = pesquisa.value.lower().strip()
-            sugestoes.controls.clear()
-
-            if texto == "":
-                sugestoes.visible = False
-                page.update()
-                return
-
-            # montar lista plana [ "Mouse Gamer", ... ]
-            lista_total = []
-            for categoria, itens in produtos_por_categoria.items():
-                for item in itens:
-                    lista_total.append((item, categoria))  # guardamos categoria para opção futura
-
-            # filtrar por ocorrência (você pode trocar para startswith se preferir)
-            resultados = [(item, cat) for item, cat in lista_total if texto in item.lower()]
-
-            if resultados:
-                # construir controles de sugestão (limitado)
-                for item, cat in resultados[:6]:
-                    sugestoes.controls.append(
-                        ft.Container(
-                            content=ft.Row(
-                                controls=[
-                                    ft.Text(item, size=14),
-                                    ft.Text(f"  — {cat}", size=12, color=ft.colors.GREY),
-                                ],
-                                alignment=ft.MainAxisAlignment.SPACE_BETWEEN
-                            ),
-                            padding=ft.Padding(8, 6, 8, 6),
-                            border_radius=6,
-                            ink=True,
-                            on_click=lambda e, nome=item: selecionar_sugestao(nome)
-                        )
-                    )
-                sugestoes.visible = True
-            else:
-                sugestoes.visible = False
-
-            page.update()
-
-
-        #Pesquisa de Produtos ---------------------------------------------------------------------------------------------------------------
-        def enviar_pesquisa(e):
-            texto = pesquisa.value.strip()
-            if texto != "":
-                pagina_resultados(page, texto, produtos_por_categoria)
-
-        pesquisa = ft.TextField(
-            hint_text="Pesquisa ...",
-            prefix_icon=ft.Icons.SEARCH,
-            border_radius=30,
-            width=500,
-            filled=True,
-            bgcolor="white",
-            border_color="transparent",
-            on_submit=enviar_pesquisa,
-            on_change= atualizar_sugestoes
-        )
-        
         #Botões ---------------------------------------------------------------------------------------------------------------
         def botao_de_categoria(text):
             return ft.ElevatedButton(
@@ -314,11 +264,7 @@ class home_view:
                                     padding= 260,
                                     alignment = ft.alignment.top_center,
                                     content= ft.Column(
-                                        [pesquisa,
-                                         ft.Container(
-                                                width=500,
-                                                content=sugestoes
-                                            )],
+                                        [pesquisa],
                                         horizontal_alignment= ft.CrossAxisAlignment.CENTER,
                                         spacing= 5
                                     )
