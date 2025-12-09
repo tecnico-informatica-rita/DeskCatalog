@@ -1,17 +1,7 @@
 import flet as ft
-
-#Teste sem o BD ---------------------------------------------------------------------------------------------------------------
-separar_linhas_categoria_informatica = [
-    {"Produto": "Mouse Gamer", "Status": "Ativo", "Unidades": 12},
-    {"Produto": "Teclado Mecânico", "Status": "Indisponível", "Unidades": 0},
-    {"Produto": "Monitor 24\"", "Status": "Em Manutenção", "Unidades": 5},
-    {"Produto": "Mouse Gamer", "Status": "ativo", "Unidades": 12},
-    {"Produto": "Teclado Mecânico", "Status": "Indisponível", "Unidades": 0},
-    {"Produto": "Monitor 24\"", "Status": "Inativo", "Unidades": 5},
-    {"Produto": "Mouse Gamer", "Status": "Ativo", "Unidades": 12},
-    {"Produto": "Teclado Mecânico", "Status": "Sla", "Unidades": 0},
-    {"Produto": "Monitor 24\"", "Status": "Ativo", "Unidades": 5}
-    ]
+from src.model.model import separar_o_retorno_por_variavel, pegar_linhas_da_view_do_banco
+linhas = pegar_linhas_da_view_do_banco('visao_informatica')
+separar_linhas_categoria_informatica = separar_o_retorno_por_variavel(linhas)
 
 class informatica_view:
     def __init__(self):
@@ -29,7 +19,7 @@ class informatica_view:
             page.update()
         
         page.snack_bar = ft.SnackBar(
-                content=ft.Text("Use o filtro para ver os itens disponíveis e/ou indisponíveis."),
+                content=ft.Text("Use o filtro para consultar a disponibilidade dos equipamentos de informática."),
                 action="OK",
                 on_action=lambda _: fechar_snack(),
                 duration=9000 )
@@ -192,14 +182,18 @@ class informatica_view:
                         grid.controls.append(criar_card(p))
             page.update()
 
-        #Estilização da Página ------------------------------------------------------------------------------------------------------------
+    #Estilização da Página ------------------------------------------------------------------------------------------------------------
         page.add(
             ft.Container(
                 expand=True,
                 bgcolor="#ffffff",
                 padding=ft.Padding(0, 0, 0, 0),
                 content=ft.Column(
-                    [
+                    expand=True,
+                    scroll=ft.ScrollMode.AUTO,
+                    horizontal_alignment="center",
+                    spacing=25,
+                    controls=[
                         ft.Container(
                             height=250,
                             expand=True,
@@ -207,25 +201,37 @@ class informatica_view:
                                 src="img/informatica.gif",
                                 fit=ft.ImageFit.COVER),
                         ),
-                        
-                        ft.Container(
-                            padding= ft.Padding(30, 0, 30, 5),
-                            content= grid
-                        ),
-                    ],
-                    expand=True,
-                    scroll=ft.ScrollMode.AUTO,
-                    alignment=ft.MainAxisAlignment.START,
-                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                    spacing=20,
+                        ft.Row(
+                        alignment=ft.MainAxisAlignment.CENTER,
+                        controls=[
+                            ft.Container(
+                                width=1080,
+                                bgcolor="white",
+                                border_radius=40,
+                                padding=40,
+                                margin=ft.Margin(0, -60, 0, 0), 
+                                shadow=ft.BoxShadow(
+                                    blur_radius=20,
+                                    spread_radius=5,
+                                    color="#fffff",
+                                ),
+                                content=ft.Column(
+                                    expand=True,
+                                    spacing=25,
+                                    horizontal_alignment="center",
+                                    controls= [grid],)
+                            )
+                        ],
+                    )
+                ]
                 )
             )
         )
-
-
-
+#Deve ser puxado pelo arquivo main
+'''
 def main(page: ft.Page):
     view = informatica_view()
     view.main(page)
 
 ft.app(target=main)
+'''
