@@ -73,7 +73,7 @@ class Emprestimo:
 
     tz = pytz.timezone('America/Sao_Paulo')
 
-    def __init__(self, nome_emprestimo: str, data_devolucao: str, nu_patrimonio = -1, nome_devolucao = "Sem devolução"):
+    def __init__(self, nome_emprestimo: str, data_devolucao: str, nu_patrimonio = -1, nome_devolucao = "Sem devolutor"):
         self.nu_patrimonio = nu_patrimonio
         self.id_disponibilidade = None
         self.nome_devolucao = nome_devolucao.strip().title()
@@ -447,26 +447,141 @@ class GerenciarEmprestimo:
             self.conn.rollback()
             raise ValueError(f"Erro ao atualizar atrasados: {e}")
         
-    # DEVOLUCOES 
-    '''def buscar_produtos_emprestados(conn):
+    #  ============ DEVOLUCOES ================
+
+    def exibir_itens_para_devolucao_30(self):
+        with self.conn.cursor() as cur:
+            sql_select = "SELECT * FROM vw_itens_para_devolucao_30"
+            cur.execute(sql_select)
+            rows = cur.fetchall()
+        return rows
+    
+    def exibir_historico_transacoes_emprestimos(self):
+        with self.conn.cursor() as cur:
+            sql_select = "SELECT * FROM vw_historico_transacoes_emprestimos"
+            cur.execute(sql_select)
+            rows = cur.fetchall()
+        return rows
+
+    def buscar_nuP_emprestimo(self, nome_produto, emprestimo, qtd):
         sql_select_view = """
-            SELECT 
-        n.nome_produto, c.nome_categoria, d.descricao_disponibilidade, e.nome_emprestimos, e.data_emprestimo, e.data_devolucao 
-FROM emprestimos AS e
-JOIN produtos_individuais AS pi ON pi.nu_patrimonio = e.nu_patrimonio
-JOIN nomes_produtos AS n ON n.id_produto = pi.id_produto
-JOIN categorias_produto AS c ON c.id_categoria = n.id_categoria
-JOIN status_disponibilidade_produto AS d ON d.id_disponibilidade = e.id_disponibilidade
-    """
+            SELECT e.nu_patrimonio
+            FROM emprestimos AS e
+            JOIN produtos_individuais AS pi ON pi.nu_patrimonio = e.nu_patrimonio
+            JOIN nomes_produtos AS n ON n.id_produto = pi.id_produto
+            JOIN status_disponibilidade_produto AS s ON s.id_disponibilidade = e.id_disponibilidade
+            WHERE s.descricao_disponibilidade IN ('Emprestado', 'Em atraso') 
+                AND LOWER(n.nome_produto) = LOWER(%s)
+                AND LOWER(e.nome_emprestimos) = LOWER(%s)
+                AND e.data_emprestimo < (%s::date + INTERVAL '1 day')
+            LIMIT %s;
+        """
         try:
-        with conn.cursor() as cur:
-            cur.execute(sql_select_view,)
-            return True
+            with self.conn.cursor() as cur:
+                cur.execute(sql_select_view, (nome_produto, emprestimo.nome_emprestimo, emprestimo.data_emprestimo, qtd))
+                resultados = cur.fetchall()
+            retorno = []
+            for tupla in resultados:
+                retorno.append(tupla[0])
+
+            return retorno
         except Exception as e:
             raise ValueError (f"Erro inesperado ao realizar query: {e}")
     
-def realizar_devolucao(conn):
-    pass'''
+    def validar_nuP_emprestimo(self, nu_patrimonio):
+        sql_select = """SELECT 1 FROM produtos_individuais  AS pi 
+            JOIN emprestimos AS e ON pi.nu_patrimonio = e.nu_patrimonio
+            WHERE pi.nu_patrimonio = %s AND e.devolvido_em IS NULL AND e.nome_devolucao IS NULL"""
+
+        with self.conn.cursor() as cur:
+            cur.execute(sql_select, (nu_patrimonio,))
+            resultado = cur.fetchone()
+
+        return resultado if resultado else None
+    
+    def validar_nuP_para_devolucao(self, nu_patrimonio):
+        sql = """
+            SELECT 1
+            FROM emprestimos 
+            WHERE nu_patrimonio = %s 
+            AND devolvido_em IS NULL
+        """
+        with self.conn.cursor() as cur:
+            cur.execute(sql, (nu_patrimonio,))
+            resultado = cur.fetchone()
+        return True if resultado else False
+
+    def validar_nuP_total(self, nome_produto, emprestimo, qtd):
+        try:
+            qtd = int(qtd)
+            if qtd <= 0:
+                raise ValueError ("Erro: quantidade inválida!")
+        except Exception as e:
+            raise ValueError ("Erro: quantidade inválida, digite apenas números!")
+    
+        num_patrimonio = self.buscar_nuP_emprestimo(nome_produto, emprestimo, qtd)
+
+        if not num_patrimonio:
+            raise ValueError ("Erro: não foi encontrado nenhum número do patrimônio válido para essa devolução!")
+    
+        if len(num_patrimonio) < qtd:
+            raise ValueError ("Erro: a quantidade esse produto não foi encotrada!")
+    
+        pat_validos = []
+
+        for p in num_patrimonio:
+            if len(pat_validos) == qtd:
+                break
+    
+            precisa_devolver = self.validar_nuP_para_devolucao(p)
+            if precisa_devolver is not None:
+                pat_validos.append(p)
+
+        if len(pat_validos) < qtd:
+            return False, pat_validos
+    
+        return True, pat_validos
+
+    def validar_devolucao(self, emprestimo, nu_patrimonio):
+        id_disponibilidade_devolvido = self.buscar_id_por_disponibilidade('Devolvido')
+        if not id_disponibilidade_devolvido:
+            raise ValueError ("Erro: disponibilidade inválida!")
+    
+        emprestimo.nu_patrimonio = nu_patrimonio
+        emprestimo.id_disponibilidade = id_disponibilidade_devolvido
+        emprestimo.devolvido_em = emprestimo.agora()
+
+    def realizar_devolucao(self, emprestimo, qtd, pat_validos):
+        sql_update = """
+            UPDATE emprestimos
+            SET id_disponibilidade = %s,
+                devolvido_em = %s,
+                nome_devolucao = %s
+            WHERE nu_patrimonio = %s
+            AND devolvido_em IS NULL
+        """
+
+        if self.conn is None:
+            raise ValueError("Erro com a conexão com o banco de dados.")
+    
+        emprestimo.validar()
+
+        try:
+            with self.conn.cursor() as cur:
+                for p in pat_validos:
+                    emp = Emprestimo(nome_emprestimo = emprestimo.nome_emprestimo, nome_devolucao = emprestimo.nome_devolucao, nu_patrimonio = p)
+                    self.validar_devolucao(emp, p)
+        
+                    cur.execute(sql_update, (
+                        emp.id_disponibilidade, emp.devolvido_em,
+                        emp.nome_devolucao, emp.nu_patrimonio))
+
+                self.conn.commit()
+                return True, len(pat_validos)
+        except Exception as e:
+            self.conn.rollback()
+            raise ValueError(f"Erro ao realizar empréstimo: {e}")
+    
     
 
 class GerenciarAlteracoes:

@@ -167,6 +167,21 @@ class ControllerDeskCatalog:
   
   #       REALIZANDO DEVOLUÇÃO
   
+  def exibir_prod_devolucao(self,): #Finalizar
+    resultados = self.gerenciador_emprestimo.exibir_historico_transacoes_emprestimos()
+
+    lista = []
+    for i in resultados:
+      resultado_dict = {
+        'categoria': i[0],
+        'nome': i[1],
+        'total_produtos': i[2],
+        'total_disponiveis': i[3]
+      }
+      lista.append(resultado_dict)
+
+    return lista
+  
   def fazer_devolucao(self,):
     pass
 
