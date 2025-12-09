@@ -9,4 +9,4 @@ __pycache__/
 
 .env
 #infos do login: 
-src/config/loguin_config.py 
+config/
