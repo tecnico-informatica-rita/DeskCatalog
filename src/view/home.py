@@ -1,4 +1,3 @@
-import pandas as pd
 import plotly.express as px
 import flet as ft
 from flet.plotly_chart import PlotlyChart
