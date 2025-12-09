@@ -48,6 +48,9 @@ class Produto:
         self.id_status = None
 
     def validar(self):
+        if not self.nome and not self.categoria and not self.status and not self.quantidade:
+                raise ValueError("Preencha todos os campos obrigatórios!")
+        
         try:
             self.quantidade = int(self.quantidade)
             if self.quantidade <= 0:
