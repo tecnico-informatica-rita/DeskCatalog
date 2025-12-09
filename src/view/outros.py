@@ -218,5 +218,3 @@ class outros_view:
 def main(page: ft.Page):
     view = outros_view()
     view.main(page)
-
-ft.app(target=main)

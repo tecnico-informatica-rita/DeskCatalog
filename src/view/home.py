@@ -4,6 +4,18 @@ import flet as ft
 from flet.plotly_chart import PlotlyChart
 from src.view.pesquisa import pagina_resultados
 
+
+
+from src.view.sala import main as sala_main
+from src.view.seguranca import main as seguranca_main
+from src.view.outros import main as outros_main
+from src.view.mobiliario import main as mobiliario_main
+from src.view.material_de_escritorio import main as material_de_escritorio_main
+from src.view.infraestrutura import main as infraestrutura_main
+from src.view.informatica import main as informatica_main
+from src.view.audio import main as audio_main
+
+
 # tive que instalar o flet: pip install flet
 # tive que atualizar o flet com: pip install "flet[all]==0.25.2" --upgrade
 # tive que instalar: pip install plotly
@@ -209,22 +221,63 @@ class home_view:
         )
 
         #Botões ---------------------------------------------------------------------------------------------------------------
-        def botao_de_categoria(text):
+        def botao_de_categoria(text, on_click):
             return ft.ElevatedButton(
-                content= ft.Text(text, size= 22, color= ft.Colors.WHITE, weight= "w500"),
-                bgcolor= "#b551c7",
-                width= 350,
-                height= 100,
+                content=ft.Text(text, size=22, color=ft.Colors.WHITE, weight="w500"),
+                bgcolor="#b551c7",
+                width=350,
+                height=100,
+                on_click=on_click
             )
 
-        salas = botao_de_categoria("🏫 Salas / Laboratórios")
-        informatica = botao_de_categoria("💻 Informática")
-        audio = botao_de_categoria("🎤 Áudio / Vídeo")
-        infraestrutura = botao_de_categoria("❄️ Infraestrutura")
-        mobiliario = botao_de_categoria("🪑 Mobiliário")
-        escritorio = botao_de_categoria("🖋️ Material de Escritório")
-        seguranca = botao_de_categoria("🛡️ Segurança")
-        outros = botao_de_categoria("... Outros")
+        def abrir_sala(page):
+            page.controls.clear()
+            sala_main(page)
+            page.update()
+
+        def abrir_informatica(page):
+            page.controls.clear()
+            informatica_main(page)
+            page.update()
+
+        def abrir_audio(page):
+            page.controls.clear()
+            audio_main(page)
+            page.update()
+
+        def abrir_infraestrutura(page):
+            page.controls.clear()
+            infraestrutura_main(page)
+            page.update()
+
+        def abrir_mobiliario(page):
+            page.controls.clear()
+            mobiliario_main(page)
+            page.update()
+
+        def abrir_material_de_escritorio(page):
+            page.controls.clear()
+            material_de_escritorio_main(page)
+            page.update()
+
+        def abrir_seguranca(page):
+            page.controls.clear()
+            seguranca_main(page)
+            page.update()
+
+        def abrir_outros(page):
+            page.controls.clear()
+            outros_main(page)
+            page.update()
+
+        salas = botao_de_categoria("🏫 Salas / Laboratórios", lambda e: abrir_sala(page))
+        informatica = botao_de_categoria("💻 Informática", lambda e: abrir_informatica(page))
+        audio = botao_de_categoria("🎤 Áudio / Vídeo", lambda e: abrir_audio(page))
+        infraestrutura = botao_de_categoria("❄️ Infraestrutura", lambda e: abrir_infraestrutura(page))
+        mobiliario = botao_de_categoria("🪑 Mobiliário", lambda e: abrir_mobiliario(page))
+        escritorio = botao_de_categoria("🖋️ Material de Escritório", lambda e: abrir_material_de_escritorio(page))
+        seguranca = botao_de_categoria("🛡️ Segurança", lambda e: abrir_seguranca(page))
+        outros = botao_de_categoria("... Outros", lambda e: abrir_outros(page))
         
         #Estilização da Página ---------------------------------------------------------------------------------------------------------------
         page.add(
@@ -284,5 +337,3 @@ class home_view:
 def main(page: ft.Page):
     home = home_view()
     home.main(page)
-
-ft.app(target=main)

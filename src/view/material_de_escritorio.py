@@ -4,7 +4,8 @@ linhas = pegar_linhas_da_view_do_banco('visao_material_de_escritorio')
 print(linhas)
 separar_linhas_categoria_material = separar_o_retorno_por_variavel(linhas)
 print(separar_linhas_categoria_material)
-class material_view:
+
+class material_de_escritorio_view:
     def __init__(self):
         pass
 
@@ -218,7 +219,5 @@ class material_view:
 
 
 def main(page: ft.Page):
-    view = material_view()
+    view = material_de_escritorio_view()
     view.main(page)
-
-ft.app(target=main)

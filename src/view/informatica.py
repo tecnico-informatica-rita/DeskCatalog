@@ -217,5 +217,3 @@ class informatica_view:
 def main(page: ft.Page):
     view = informatica_view()
     view.main(page)
-
-ft.app(target=main)

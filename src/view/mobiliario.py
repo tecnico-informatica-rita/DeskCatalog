@@ -219,5 +219,3 @@ class mobiliario_view:
 def main(page: ft.Page):
     view = mobiliario_view()
     view.main(page)
-
-ft.app(target=main)

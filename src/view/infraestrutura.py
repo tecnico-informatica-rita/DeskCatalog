@@ -219,5 +219,3 @@ class infraestrutura_view:
 def main(page: ft.Page):
     view = infraestrutura_view()
     view.main(page)
-
-ft.app(target=main)

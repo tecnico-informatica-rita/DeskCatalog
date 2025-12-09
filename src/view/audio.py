@@ -219,5 +219,3 @@ class audio_view:
 def main(page: ft.Page):
     view = audio_view()
     view.main(page)
-
-ft.app(target=main)

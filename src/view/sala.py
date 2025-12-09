@@ -219,5 +219,3 @@ class sala_view:
 def main(page: ft.Page):
     view = sala_view()
     view.main(page)
-
-ft.app(target=main)
