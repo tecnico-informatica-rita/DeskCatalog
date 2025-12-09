@@ -7,7 +7,7 @@ Camada Controller (Controle):
 - Gerencia o estado da aplicação (ex: o carrinho).
 """
 import src.view.view as view
-from src.model.model import pegar_linhas_da_view_do_banco, separar_o_retorno_por_variavel
+from src.model.model import pegar_linhas_da_view_do_banco, separar_o_retorno_por_variavel, separar_o_retorno_por_variavel_relatorio_30_dias, separar_o_retorno_por_variavel_historico_de_transaces
 from src.model.model import enviar_email, Autenticar_senha
 
 def dividir_retorno_por_variavel(nome_view):
@@ -37,3 +37,22 @@ def autenticar_loguin_completo(usuario, senha):
     except Exception as e:
         print("Erro ao autenticar:", e)
         return False
+
+def mostrar_informaçoes_dos_ultimos_30_dias():
+    try:
+        lista = pegar_linhas_da_view_do_banco('visao_itens_para_devolucao_30_dias')
+        resultado = separar_o_retorno_por_variavel_relatorio_30_dias(lista)
+        return resultado
+    
+    except Exception as e:
+        return f"um erro inesperado aconteceu: {e}"
+    
+def mostrar_historico_transacoes_de_emprestimo():
+    try:
+        lista = pegar_linhas_da_view_do_banco('visao_historico_transacoes_emprestimos')
+        resultado = separar_o_retorno_por_variavel_historico_de_transaces(lista)
+        return resultado
+    
+    except Exception as e:
+        return f"um erro inesperado aconteceu: {e}"
+  
