@@ -124,8 +124,8 @@ def popular_dados_login(lista_email_senha):
 
 def criar_view_produtos_emprestados_30_dias(conn):
     sql_select_view = """
-        CREATE OR REPLACE VIEW visao_itens_para_devolucao_30_dias AS
-SELECT 
+    CREATE OR REPLACE VIEW visao_itens_para_devolucao_30_dias AS
+    SELECT 
     n.nome_produto,
     e.nome_emprestimos,
     e.id_disponibilidade,  
@@ -182,7 +182,5 @@ def criar_view_historico_emprestados(conn):
     except Exception as e:
         raise ValueError (f"Erro inesperado ao realizar query: {e}")
 
-
-criar_view_produtos_emprestados_30_dias(get_db_connection())
 
 

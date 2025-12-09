@@ -11,6 +11,7 @@ import smtplib
 from email.mime.text import MIMEText
 from password_validator import PasswordValidator
 from src.config.loguin_config import servidor_smtp, porta, usuario, senha
+
 #===== MODEL ========
 def enviar_email(destinatario):
     try:
@@ -41,7 +42,6 @@ def Autenticar_senha(senha):
 #print(Autenticar_senha('Anaclara6600'))
 #print(enviar_email('anaclaragamair15@gmail.com'))
 
-
 #FUNÇÃO PARA REUNIR INFORMAÇOES POR CATEGORIA NO BANCO
 def pegar_linhas_da_view_do_banco(nome_view):
     """Essa função retorna a visao de determinada categoria"""
@@ -71,3 +71,44 @@ def separar_o_retorno_por_variavel(lista):
         
     except Exception as e:
         return f"Um erro inesperado aconteceu: {e}"
+
+def separar_o_retorno_por_variavel_relatorio_30_dias(lista):
+    """
+    Pega a lista do banco e transforma em uma lista de dicionários
+    com as colunas da view 'visao_itens_para_devolucao_30_dias'
+    """
+    try:
+        resultado = []
+        for nome_produto, nome_pessoa, id_disponibilidade, data, quantidade, status in lista:
+            resultado.append({
+                "Produto": nome_produto,
+                "Pessoa": nome_pessoa,
+                "ID_Disponibilidade": id_disponibilidade,
+                "Data_Emprestimo": data,
+                "Quantidade": quantidade,
+                "Status": status
+            })
+        return resultado
+
+    except Exception as e:
+        return f"Um erro inesperado aconteceu: {e}"
+    
+def separar_o_retorno_por_variavel_historico_de_transaces(lista):
+    """
+    Pega a lista do banco e transforma em uma lista de dicionários
+    com as colunas da view 'visao_historico_transacoes_emprestimos'
+    """
+    try:
+        historico = []
+        for nome_produto, nome_emprestimos, data_emprestimo, descricao_disponibilidade, quantidade_total in lista:
+            historico.append({
+                "Produto": nome_produto,
+                "Emprestado_por": nome_emprestimos,
+                "Data_emprestimo": data_emprestimo,
+                "Status": descricao_disponibilidade,
+                "Quantidade_total": quantidade_total
+            })
+        return historico
+    except Exception as e:
+        return f"Um erro inesperado aconteceu: {e}"
+

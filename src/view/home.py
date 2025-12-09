@@ -1,10 +1,7 @@
 import plotly.express as px
-
 import flet as ft
 from flet.plotly_chart import PlotlyChart
 from src.view.pesquisa import pagina_resultados
-
-
 
 from src.view.sala import main as sala_main
 from src.view.seguranca import main as seguranca_main
@@ -15,13 +12,45 @@ from src.view.infraestrutura import main as infraestrutura_main
 from src.view.informatica import main as informatica_main
 from src.view.audio import main as audio_main
 
+try:
+    from src.view.relatorio_30_dias import Relatorio30DiasView
+    from src.view.historico_view import HistoricoView
+except:
+    Relatorio30DiasView = None
+    HistoricoView = None
 
-# tive que instalar o flet: pip install flet
-# tive que atualizar o flet com: pip install "flet[all]==0.25.2" --upgrade
-# tive que instalar: pip install plotly
-# tive que instalar: pip install --upgrade kaleido
-# tive que instalar plotly.express: pip install "plotly[express]"
-#tive que instalar o pandas: pip install pandas
+
+def router(page: ft.Page, route: str):
+    page.controls.clear()
+
+    if route == "/":
+        home_view().main(page)
+
+    elif route == "/sala":
+        sala_main(page)
+    elif route == "/informatica":
+        informatica_main(page)
+    elif route == "/audio":
+        audio_main(page)
+    elif route == "/infraestrutura":
+        infraestrutura_main(page)
+    elif route == "/mobiliario":
+        mobiliario_main(page)
+    elif route == "/escritorio":
+        material_de_escritorio_main(page)
+    elif route == "/seguranca":
+        seguranca_main(page)
+    elif route == "/outros":
+        outros_main(page)
+
+    elif route == "/relatorio":
+        Relatorio30DiasView().main(page)
+    elif route == "/historico":
+        HistoricoView().main(page)
+    else:
+        page.add(ft.Text(f"❌ Rota não encontrada: {route}", color="red", size=30))
+    page.update()
+
 
 class home_view:
     def __init__(self):
@@ -34,9 +63,12 @@ class home_view:
         page.padding = 0
 
         def rota_mudou(e):
-            if page.route == "/":
-                page.views.clear()
-                page.views.append(ft.View("/", controls=page.controls))
+            router(page, page.route)
+            page.on_route_change = rota_mudou
+            page.go("/")
+
+            page.views.clear()
+            page.views.append(ft.View("/", controls=page.controls))
             page.update()
 
         page.on_route_change = rota_mudou
@@ -83,27 +115,26 @@ class home_view:
             page.update()
 
         #Funções no Menu ---------------------------------------------------------------------------------------------------------------
-        page.drawer = ft.NavigationDrawer(
-            controls= [
-                ft.NavigationDrawerDestination(
-                    label= "Início", icon= ft.Icons.HOME
-                ),
-                ft.NavigationDrawerDestination(
-                    label= "Cadastrar Item", icon= ft.Icons.ADD_CIRCLE
-                ),
-                ft.NavigationDrawerDestination(
-                    label= "Empréstimo", icon= ft.Icons.WIDGETS
-                ),
-                ft.NavigationDrawerDestination(
-                    label= "Devolução", icon= ft.Icons.REPLAY
-                ),
-                ft.NavigationDrawerDestination(
-                    label= "Ajustar Empréstimo", icon= ft.Icons.SETTINGS_OUTLINED
-                ),
-                ft.NavigationDrawerDestination(
-                    label= "Imprimir Relatório", icon= ft.Icons.DOWNLOAD
-                ),
 
+        def mudou_menu(e):
+            opcao = e.control.selected_index
+
+            if opcao == 0:
+                page.go("/")
+            elif opcao == 1:
+                page.go("/relatorio")
+            elif opcao == 2:
+                page.go("/historico")
+
+            page.close(page.drawer)
+            page.update()
+
+        page.drawer = ft.NavigationDrawer(
+            on_change=mudou_menu,
+            controls=[
+                ft.NavigationDrawerDestination(label="Início", icon=ft.Icons.HOME),
+                ft.NavigationDrawerDestination(label="Relatório 30 Dias", icon=ft.Icons.DOWNLOAD),
+                ft.NavigationDrawerDestination(label="Histórico", icon=ft.Icons.HISTORY),
             ]
         )
 
@@ -221,64 +252,24 @@ class home_view:
         )
 
         #Botões ---------------------------------------------------------------------------------------------------------------
-        def botao_de_categoria(text, on_click):
+        def botao_de_categoria(text, rota):
             return ft.ElevatedButton(
                 content=ft.Text(text, size=22, color=ft.Colors.WHITE, weight="w500"),
                 bgcolor="#b551c7",
                 width=350,
                 height=100,
-                on_click=on_click
+                on_click=lambda e: page.go(rota)
             )
 
-        def abrir_sala(page):
-            page.controls.clear()
-            sala_main(page)
-            page.update()
+        salas = botao_de_categoria("🏫 Salas / Laboratórios", "/sala")
+        informatica = botao_de_categoria("💻 Informática", "/informatica")
+        audio = botao_de_categoria("🎤 Áudio / Vídeo", "/audio")
+        infraestrutura = botao_de_categoria("❄️ Infraestrutura", "/infraestrutura")
+        mobiliario = botao_de_categoria("🪑 Mobiliário", "/mobiliario")
+        escritorio = botao_de_categoria("🖋️ Material de Escritório", "/escritorio")
+        seguranca = botao_de_categoria("🛡️ Segurança", "/seguranca")
+        outros = botao_de_categoria("... Outros", "/outros")
 
-        def abrir_informatica(page):
-            page.controls.clear()
-            informatica_main(page)
-            page.update()
-
-        def abrir_audio(page):
-            page.controls.clear()
-            audio_main(page)
-            page.update()
-
-        def abrir_infraestrutura(page):
-            page.controls.clear()
-            infraestrutura_main(page)
-            page.update()
-
-        def abrir_mobiliario(page):
-            page.controls.clear()
-            mobiliario_main(page)
-            page.update()
-
-        def abrir_material_de_escritorio(page):
-            page.controls.clear()
-            material_de_escritorio_main(page)
-            page.update()
-
-        def abrir_seguranca(page):
-            page.controls.clear()
-            seguranca_main(page)
-            page.update()
-
-        def abrir_outros(page):
-            page.controls.clear()
-            outros_main(page)
-            page.update()
-
-        salas = botao_de_categoria("🏫 Salas / Laboratórios", lambda e: abrir_sala(page))
-        informatica = botao_de_categoria("💻 Informática", lambda e: abrir_informatica(page))
-        audio = botao_de_categoria("🎤 Áudio / Vídeo", lambda e: abrir_audio(page))
-        infraestrutura = botao_de_categoria("❄️ Infraestrutura", lambda e: abrir_infraestrutura(page))
-        mobiliario = botao_de_categoria("🪑 Mobiliário", lambda e: abrir_mobiliario(page))
-        escritorio = botao_de_categoria("🖋️ Material de Escritório", lambda e: abrir_material_de_escritorio(page))
-        seguranca = botao_de_categoria("🛡️ Segurança", lambda e: abrir_seguranca(page))
-        outros = botao_de_categoria("... Outros", lambda e: abrir_outros(page))
-        
         #Estilização da Página ---------------------------------------------------------------------------------------------------------------
         page.add(
             ft.Container(
@@ -333,6 +324,7 @@ class home_view:
                 )
             )
         )
+
 
 def main(page: ft.Page):
     home = home_view()
