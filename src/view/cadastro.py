@@ -1,23 +1,23 @@
 import flet as ft
-from mock_model import Produto
-from mock_controller import MockController
-
-
+from model.model_deskcatalog import Produto
+from controller.controller import ControllerDeskCatalog
+ 
+ 
 class cadastro_view:
-    def __init__(self):
-        self.controller = MockController()
+    def __init__(self, conn):
+        self.controller = ControllerDeskCatalog(conn)
 
-    def main(self, page: ft.Page):
+    def main_cadastro(self, page: ft.Page):
         page.title = "Cadastro"
         page.window.resizable = False
         page.theme_mode = ft.ThemeMode.LIGHT
         page.padding = 0
-
+ 
         #Ajuda ------------------------------------------------------------------------------------------------------------
         def fechar_snack():
             snack_bar.open = False
             page.update()
-
+ 
         snack_bar = ft.SnackBar(
             content=ft.Text("Dica de uso: Utilize o campo 'Buscar Produto' ou cadastre novos itens, e veja-os na tabela abaixo."),
             action="OK",
@@ -25,11 +25,11 @@ class cadastro_view:
             duration=9000,
         )
         page.overlay.append(snack_bar)
-
+ 
         def abrir_ajuda(e):
             snack_bar.open = True
             page.update()
-
+ 
         #Início Menu ---------------------------------------------------------------------------------------------------------------
         page.drawer = ft.NavigationDrawer(
             controls=[
@@ -41,7 +41,7 @@ class cadastro_view:
                 ft.NavigationDrawerDestination("Início", icon=ft.Icons.HOME)
             ]
         )
-
+ 
         #Barra de Menu ------------------------------------------------------------------------------------------------------------
         page.appbar = ft.AppBar(
             leading=ft.Container(
@@ -81,42 +81,42 @@ class cadastro_view:
                 )
             ],
         )
-
+ 
         layout = self.montar_layout_estilizado(self.controller, page)
-        page.add(layout)
-
+        return layout 
+ 
     def montar_layout_estilizado(self, controller, page):
-
+ 
         #Dados ------------------------------------------------------------------------------------------------------------
         categorias = controller.gerenciador_produto.buscar_nome_categorias()
         status_lista = controller.gerenciador_produto.buscar_status()
         nomes_existentes = controller.gerenciador_produto.buscar_nomes_produtos_existentes()
-
+ 
         #Campos para inserir texto ------------------------------------------------------------------------------------------------------------
         search_input = ft.TextField(label="Buscar Produto", width=300)
         autocomplete = ft.Column()
         nome_produto = ft.TextField(
             label="Nome do Produto (caso não exista no catálogo)", width=300, visible=False
         )
-
+ 
         combo_categoria = ft.Dropdown(
             label="Categoria",
             width=200,
             options=[ft.dropdown.Option(x) for x in categorias],
         )
-
+ 
         combo_status = ft.Dropdown(
             label="Status",
             width=200,
             options=[ft.dropdown.Option(x) for x in status_lista],
         )
-
+ 
         campo_qtd = ft.TextField(
             label="Quantidade",
             width=150,
             keyboard_type=ft.KeyboardType.NUMBER
         )
-
+ 
         #Tabela ------------------------------------------------------------------------------------------------------------
         tabela = ft.DataTable(
             columns=[
@@ -127,32 +127,32 @@ class cadastro_view:
             ],
             rows=[]
         )
-
+ 
         #Funções ------------------------------------------------------------------------------------------------------------
         def atualizar_autocomplete(e):
             texto = search_input.value.strip().title()
             autocomplete.controls.clear()
-
+ 
             if texto != "":
                 sugestoes = [n for n in nomes_existentes if texto in n]
                 for s in sugestoes:
                     autocomplete.controls.append(
                         ft.TextButton(text=s, on_click=lambda x, v=s: selecionar_sugestao(v))
                     )
-
+ 
             nome_produto.visible = (texto != "" and texto not in nomes_existentes)
             page.update()
-
+ 
         def selecionar_sugestao(valor):
             search_input.value = valor
             nome_produto.visible = False
             autocomplete.controls.clear()
             page.update()
-
+ 
         def carregar_tabela():
             tabela.rows.clear()
-            dados = controller.gerenciador_produto.exibir_todosP_qtd()
-
+            dados = controller.exibir_todosP_qtd()
+ 
             for item in dados:
                 tabela.rows.append(
                     ft.DataRow(
@@ -165,45 +165,63 @@ class cadastro_view:
                     )
                 )
             page.update()
-
+ 
         def cadastrar_produto(e):
             try:
                 nome = nome_produto.value if nome_produto.visible else search_input.value
-
+ 
                 prod = Produto(
                     nome=nome,
                     categoria=combo_categoria.value,
                     quantidade=campo_qtd.value,
                     status=combo_status.value
                 )
-
-                resposta = controller.gerenciador_produto.adicionar_produto(prod)
-
+ 
+                resposta = controller.adicionar_produto(prod)
+ 
                 if prod.nome not in nomes_existentes:
                     nomes_existentes.append(prod.nome)
-
+ 
                 carregar_tabela()
-
-                snackbar = ft.SnackBar(
-                    ft.Text(resposta["mensagem"]),
-                    bgcolor="green" if resposta["status"] == "ok" else "red"
-                )
-
+ 
+                if resposta["status"] == "ok":
+                    snackbar = ft.SnackBar(ft.Text(resposta["mensagem"]), bgcolor="green")
+                elif resposta["status"] == 'erro':
+                    snackbar = ft.SnackBar(ft.Text(resposta["mensagem"]), bgcolor="red")
+ 
                 page.overlay.append(snackbar)
                 snackbar.open = True
-
+ 
+            except ValueError as erro:
+                if hasattr(erro, "args") and erro.args:
+                    if isinstance(erro.args[0], dict):
+                        texto = erro.args[0].get("mensagem", "Erro inesperado")
+                    else:
+                        texto = str(erro)
+                else:
+                    texto = str(erro)
+ 
+                snackbar = ft.SnackBar(ft.Text(f"⚠ {texto}"), bgcolor="red")
+                page.overlay.append(snackbar)
+                snackbar.open = True
+ 
             finally:
-                search_input.value = ""
                 nome_produto.value = ""
+                search_input.value = ""
                 campo_qtd.value = ""
+ 
+            # Limpa os Dropdowns
                 combo_categoria.value = None
                 combo_status.value = None
-                nome_produto.visible = False
+                combo_categoria.update()
+                combo_status.update()
+ 
+                nome_produto.visible = False  
                 autocomplete.controls.clear()
                 page.update()
-
+ 
         search_input.on_change = atualizar_autocomplete
-
+ 
         #Estilização da Página ------------------------------------------------------------------------------------------------------------
         layout_principal = ft.Container(
             expand=True,
@@ -249,7 +267,7 @@ class cadastro_view:
                                             spacing=20
                                         ),
                                         nome_produto,
-
+ 
                                         ft.Container(
                                             alignment=ft.alignment.center,
                                             content=ft.ElevatedButton(
@@ -272,14 +290,7 @@ class cadastro_view:
                 ]
             )
         )
-        
+       
         carregar_tabela()
-
+ 
         return layout_principal
-    
-#Abrir página ------------------------------------------------------------------------------------------------------------
-def main(page: ft.Page):
-    view = cadastro_view()
-    view.main(page)
-
-ft.app(target=main)
