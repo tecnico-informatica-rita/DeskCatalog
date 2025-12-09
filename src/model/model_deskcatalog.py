@@ -327,21 +327,31 @@ class GerenciarEmprestimo:
 
         return resultado if resultado else None
 
-    def validar_nuP_disponivel(self, nu_patrimonio):
-        disponibilidade = 'Emprestado'
-
-        sql_select = """SELECT
-            NOT EXISTS (
-            SELECT 1
-            FROM emprestimos AS e
-            JOIN status_disponibilidade_produto AS s ON e.id_disponibilidade = s.id_disponibilidade
-            WHERE e.nu_patrimonio = %s AND s.descricao_disponibilidade = %s) AS pat_valido; """
     
+    def validar_nuP_disponivel(self, nu_patrimonio):
+        sql_select = """
+            SELECT CASE 
+                 WHEN s.descricao_disponibilidade = 'Emprestado' THEN FALSE
+                 ELSE TRUE
+               END AS pat_valido
+            FROM emprestimos AS e
+            JOIN status_disponibilidade_produto AS s 
+             ON e.id_disponibilidade = s.id_disponibilidade
+            WHERE e.nu_patrimonio = %s
+            ORDER BY e.data_emprestimo DESC
+            LIMIT 1;
+    """
+
         with self.conn.cursor() as cur:
-            cur.execute(sql_select, (nu_patrimonio, disponibilidade))
+            cur.execute(sql_select, (nu_patrimonio,))
             resultado = cur.fetchone()
 
+    # Se nunca existiu empréstimo, está disponível
+        if resultado is None:
+            return True
+
         return resultado[0]
+
 
 
     def validar_nu_patrimonio(self, nome, categoria, qtd):
@@ -398,6 +408,16 @@ class GerenciarEmprestimo:
     def realizar_emprestimo(self, emprestimo, qtd, pat_validos):
         sql_insert = """INSERT INTO emprestimos(nu_patrimonio, id_disponibilidade, data_devolucao, nome_emprestimos, data_emprestimo) 
                         VALUES (%s, %s, %s, %s, %s);"""
+        
+        '''sql_insert = """
+        INSERT INTO emprestimos(nu_patrimonio, id_disponibilidade, data_devolucao, nome_emprestimos, data_emprestimo)
+        VALUES (%s, %s, %s, %s, %s)
+        ON CONFLICT (nu_patrimonio) DO UPDATE SET
+        id_disponibilidade = EXCLUDED.id_disponibilidade,
+        data_devolucao     = EXCLUDED.data_devolucao,
+        nome_emprestimos   = EXCLUDED.nome_emprestimos,
+        data_emprestimo    = EXCLUDED.data_emprestimo;
+        """'''
 
         if self.conn is None:
             raise ValueError("Erro com a conexão com o banco de dados.")
@@ -405,17 +425,23 @@ class GerenciarEmprestimo:
         emprestimo.validar()
 
         try:
+            registrados = 0
+
             with self.conn.cursor() as cur:
                 for p in pat_validos:
+                    if not self.validar_nuP_disponivel(p):
+                        continue
+
                     emp = Emprestimo(nome_emprestimo = emprestimo.nome_emprestimo, data_devolucao = emprestimo.data_devolucao, nu_patrimonio = p)
                     self.validar_emprestimo(emp, p)
         
                     cur.execute(sql_insert, (
                         emp.nu_patrimonio, emp.id_disponibilidade, emp.data_devolucao,
                         emp.nome_emprestimo, emp.data_emprestimo))
+                    registrados += 1
 
                 self.conn.commit()
-                return True, len(pat_validos)
+                return True, registrados
         except Exception as e:
             self.conn.rollback()
             raise ValueError(f"Erro ao realizar empréstimo: {e}")

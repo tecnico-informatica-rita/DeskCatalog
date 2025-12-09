@@ -3,11 +3,11 @@ from model.model_deskcatalog import Emprestimo
 from controller.controller import ControllerDeskCatalog
  
  
-class emprestimo_view:
+class emprestimo_view: # adicionei conexão
     def __init__(self, conn):
         self.controller = ControllerDeskCatalog(conn)
  
-    def main(self, page: ft.Page):
+    def main_emprestimo(self, page: ft.Page):
         page.title = "Empréstimo"
         page.window.resizable = False
         page.theme_mode = ft.ThemeMode.LIGHT
@@ -83,14 +83,15 @@ class emprestimo_view:
         )
  
         layout = self.pagina_emprestimo(self.controller, page)
-        page.add(layout)
+        return layout # retornei o layout para não dar erro "None"
+        #page.add(layout)
  
  
     def pagina_emprestimo(self, controller, page):
        
         #Dados ------------------------------------------------------------------------------------------------------------
         nomes_existentes = controller.gerenciador_produto.buscar_nomes_produtos_existentes()
-        produtos_disponiveis = controller.gerenciador_produto.exibir_prod_disponiveis()
+        produtos_disponiveis = controller.exibir_prod_disponiveis()
  
         #Campos para inserir texto ------------------------------------------------------------------------------------------------------------
         search_input = ft.TextField(label="Buscar Produto", width=300)
@@ -160,7 +161,7 @@ class emprestimo_view:
  
         def carregar_tabela():
             tabela.rows.clear()
-            for p in controller.gerenciador_produto.exibir_prod_disponiveis():
+            for p in controller.exibir_prod_disponiveis():
                 tabela.rows.append(ft.DataRow(cells=[
                     ft.DataCell(ft.Text(p["categoria"])),
                     ft.DataCell(ft.Text(p["nome"])),
@@ -215,6 +216,7 @@ class emprestimo_view:
                     def on_cancel(e):
                         dialogo.open = False
                         page.update()
+                        snack(f"❌ Empréstimo cancelado pelo usuário.", "red") # adicionei cancelamento do usuário
  
                     def on_confirm(e):
                         dialogo.open = False
@@ -309,8 +311,8 @@ class emprestimo_view:
         return layout_principal
  
 #Abrir página ------------------------------------------------------------------------------------------------------------
-def main(page: ft.Page):
+'''def main(page: ft.Page):
     view = emprestimo_view()
     view.main(page)
  
-ft.app(target=main)
+ft.app(target=main)''' # para rodar no meu precisei comentar isso

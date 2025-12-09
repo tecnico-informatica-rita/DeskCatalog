@@ -179,6 +179,7 @@ def pagina_emprestimo(controller, page):
 
                 def on_cancel(e):
                     dialogo.open = False
+                    snack(f"⚠ Empréstimo cancelado pelo usuário!", "red")
                     page.update()
 
                 def on_confirm(e):
