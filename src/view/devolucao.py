@@ -40,10 +40,7 @@ class devolucao_view:
                     label= "Empréstimo", icon= ft.Icons.WIDGETS
                 ),
                 ft.NavigationDrawerDestination(
-                    label= "Ajustar Empréstimo", icon= ft.Icons.SETTINGS_OUTLINED
-                ),
-                ft.NavigationDrawerDestination(
-                    label= "Imprimir Relatório", icon= ft.Icons.DOWNLOAD
+                    label= "Relatório", icon= ft.Icons.DOWNLOAD
                 ),
                 ft.NavigationDrawerDestination(
                     label= "Início", icon= ft.Icons.HOME
