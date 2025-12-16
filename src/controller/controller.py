@@ -6,6 +6,57 @@ Camada Controller (Controle):
   para lógica de negócios ou dados, e envia os resultados para a View.
 - Gerencia o estado da aplicação (ex: o carrinho).
 """
-
-import src.model.model as model
 import src.view.view as view
+from src.model.model import pegar_linhas_da_view_do_banco, separar_o_retorno_por_variavel, separar_o_retorno_por_variavel_relatorio_30_dias, separar_o_retorno_por_variavel_historico_de_transaces
+from src.model.model import enviar_email, Autenticar_senha
+
+def dividir_retorno_por_variavel(nome_view):
+    try:
+      pegar_linhas_banco = pegar_linhas_da_view_do_banco(nome_view)
+      resultado = separar_o_retorno_por_variavel(pegar_linhas_banco)
+      return resultado
+
+    except Exception as e:
+      return "Algum erro inesperado aconteceu: {e}"
+
+
+def autenticar_loguin_completo(usuario, senha):
+    """
+    Retorna True se:
+    email for enviado com sucesso
+    senha validada
+    """
+    try:
+        email_ok = enviar_email(usuario)
+        senha_ok = Autenticar_senha(senha)
+        if email_ok and senha_ok:
+            return True
+        else:
+            return False
+
+    except Exception as e:
+        print("Erro ao autenticar:", e)
+        return False
+
+def mostrar_informaçoes_dos_ultimos_30_dias():
+    try:
+        lista = pegar_linhas_da_view_do_banco('visao_itens_para_devolucao_30_dias')
+        print("DEBUG consulta view:", lista) 
+
+        resultado = separar_o_retorno_por_variavel_relatorio_30_dias(lista)
+        print("DEBUG dicionarios:", resultado)
+
+        return resultado
+
+    except Exception as e:
+        return f"um erro inesperado aconteceu: {e}"
+    
+def mostrar_historico_transacoes_de_emprestimo():
+    try:
+        lista = pegar_linhas_da_view_do_banco('visao_historico_transacoes_emprestimos')
+        resultado = separar_o_retorno_por_variavel_historico_de_transaces(lista)
+        return resultado
+    
+    except Exception as e:
+        return f"um erro inesperado aconteceu: {e}"
+  

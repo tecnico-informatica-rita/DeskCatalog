@@ -1,0 +1,69 @@
+import flet as ft
+from src.controller.controller import mostrar_informaçoes_dos_ultimos_30_dias
+
+class Relatorio30DiasView:
+
+    def main(self, page: ft.Page):
+        page.title = "Relatório - Últimos 30 Dias"
+        page.padding = 20
+        page.theme_mode = ft.ThemeMode.LIGHT
+        page.window.resizable = True
+
+       
+        dados = mostrar_informaçoes_dos_ultimos_30_dias()
+
+        
+        if isinstance(dados, str):
+            page.add(ft.Text(dados, color="red"))
+            return
+
+        
+        rows = []
+        for item in dados:
+            rows.append(
+                ft.DataRow(
+                    cells=[
+                        ft.DataCell(ft.Text(item["Produto"])),
+                        ft.DataCell(ft.Text(item["Pessoa"])),
+                        ft.DataCell(ft.Text(item["Data_Emprestimo"])), 
+                        ft.DataCell(ft.Text(str(item["Quantidade"]))),
+                        ft.DataCell(ft.Text(item["Status"]))
+                    ]
+                )
+            )
+
+        
+        tabela = ft.DataTable(
+            columns=[
+                ft.DataColumn(ft.Text("Produto")),
+                ft.DataColumn(ft.Text("Pessoa")),
+                ft.DataColumn(ft.Text("Data Empréstimo")),
+                ft.DataColumn(ft.Text("Quantidade")),
+                ft.DataColumn(ft.Text("Status")),
+            ],
+            rows=rows 
+        )
+
+        # Adicionando layout da página
+        page.add(
+            ft.Column(
+                [
+                    ft.Text(
+                        "Relatório dos Últimos 30 Dias",
+                        size=30,
+                        weight=ft.FontWeight.BOLD,
+                        color="#b551c7"
+                    ),
+                    tabela
+                ],
+                scroll=ft.ScrollMode.AUTO
+            )
+        )
+
+
+def main(page: ft.Page):
+    Relatorio30DiasView().main(page)
+
+
+if __name__ == "__main__":
+    ft.app(target=main)
