@@ -118,7 +118,7 @@ class informatica_view:
                 )
             ]
         )
-
+        """
         linhas_teste = [
             ("Notebook Dell", "ativo", 5),
             ("Mouse Logitech", "indisponível", 12),
@@ -141,8 +141,11 @@ class informatica_view:
             ("Gabinete Cooler Master", "indisponível", 3),
             ("Mouse Pad SteelSeries", "ativo", 9)
         ]
-        
-        separar_linhas_categoria_informatica = separar_o_retorno_por_variavel(linhas_teste)
+        """
+        from src.controller.controller import pegar_linhas_da_view_do_banco
+
+        linhas = pegar_linhas_da_view_do_banco('visao_informatica')
+        separar_linhas_categoria= separar_o_retorno_por_variavel(linhas)
         
         def criar_card(produto, on_click_disponivel=None, on_click_indisponivel=None):
             nome = produto["Produto"]
@@ -187,12 +190,12 @@ class informatica_view:
             for p in produtos:
                 grid.controls.append(criar_card(p))
                 page.update()
-                await asyncio.sleep(0.50)
+                await asyncio.sleep(0.40)
 
         def filtrar_status(status):
             grid.controls.clear()
 
-            for p in separar_linhas_categoria_informatica:
+            for p in separar_linhas_categoria:
                 if status == "todos":
                     grid.controls.append(criar_card(p))
                 elif status == "ativo":
@@ -249,8 +252,8 @@ class informatica_view:
             )
         )
         
-
-        task = functools.partial(popular_grid_lentamente, page, grid, separar_linhas_categoria_informatica)
+        
+        task = functools.partial(popular_grid_lentamente, page, grid, separar_linhas_categoria)
         page.run_task(task)
 
 
