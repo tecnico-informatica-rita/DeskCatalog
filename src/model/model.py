@@ -52,7 +52,7 @@ def pegar_linhas_da_view_do_banco(nome_view):
         resultado = cursor.fetchall()
         conn.close()
         return resultado
-    except psycopg2.Error as e:
+    except psycopg2.OperationalError as e:
         return("Um erro inesperado aconteceu: {e}")
 
 
