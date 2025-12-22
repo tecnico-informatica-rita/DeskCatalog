@@ -1,6 +1,5 @@
 import flet as ft
 import asyncio
-import functools
 
 from src.model.model import separar_o_retorno_por_variavel, pegar_linhas_da_view_do_banco
 
@@ -32,9 +31,25 @@ class audio_view:
         def abrir_ajuda(e):
             snack_bar.open = True
             page.update()
+        
+        # ================= DRAWER =================
+        def navegar(index):
+            rotas = [
+                "/audio",
+                "/sala",
+                "/informatica",
+                "/infraestrutura",
+                "/mobiliario",
+                "/material",
+                "/seguranca",
+                "/outros",
+                "/",  
+            ]
+            page.go(rotas[index])
 
-        # ================= MENU =================
-        page.drawer = ft.NavigationDrawer(
+        drawer = ft.NavigationDrawer(
+            selected_index=0,  # define item inicial
+            on_change=lambda e: navegar(drawer.selected_index),  
             controls=[
                 ft.NavigationDrawerDestination(label="Áudio / Vídeo", icon=ft.Icons.VIDEO_CAMERA_FRONT),
                 ft.NavigationDrawerDestination(label="Sala / Laboratório", icon=ft.Icons.BIOTECH),
@@ -78,11 +93,7 @@ class audio_view:
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                     controls=[
                         ft.Text(nome, weight=ft.FontWeight.BOLD, size=14),
-                        ft.ElevatedButton(
-                            text=texto_botao,
-                            bgcolor=cor_botao,
-                            color=ft.Colors.WHITE,
-                        ),
+                        ft.ElevatedButton(text=texto_botao, bgcolor=cor_botao, color=ft.Colors.WHITE),
                         ft.Text(f"Unidades: {unidades}"),
                     ],
                 ),
@@ -113,7 +124,7 @@ class audio_view:
         )
 
         # ================= APPBAR =================
-        page.appbar = ft.AppBar(
+        appbar = ft.AppBar(
             leading=ft.Container(
                 width=50,
                 height=50,
@@ -123,7 +134,7 @@ class audio_view:
                     icon=ft.Icons.MENU,
                     icon_size=30,
                     icon_color="white",
-                    on_click=lambda _: page.open(page.drawer),
+                    on_click=lambda _: page.open(drawer),
                 ),
             ),
             title=ft.Text("", size=22, color=ft.Colors.WHITE),
@@ -150,54 +161,61 @@ class audio_view:
             ],
         )
 
-        # ================= LAYOUT =================
-        page.add(
-            ft.Container(
-                expand=True,
-                bgcolor="#ffffff",
-                content=ft.Column(
-                    expand=True,
-                    scroll=ft.ScrollMode.AUTO,
-                    horizontal_alignment="center",
-                    spacing=25,
-                    controls=[
-                        ft.Container(
-                            height=250,
+        # ================= VIEW =================
+        page.views.append(
+            ft.View(
+                route="/audio",
+                appbar=appbar,
+                drawer=drawer,
+                controls=[
+                    ft.Container(
+                        expand=True,
+                        bgcolor="#ffffff",
+                        content=ft.Column(
                             expand=True,
-                            image=ft.DecorationImage(
-                                src="img/audio_video.gif",
-                                fit=ft.ImageFit.COVER,
-                            ),
-                        ),
-                        ft.Row(
-                            alignment=ft.MainAxisAlignment.CENTER,
+                            scroll=ft.ScrollMode.AUTO,
+                            horizontal_alignment="center",
+                            spacing=25,
                             controls=[
                                 ft.Container(
-                                    width=1080,
-                                    bgcolor="white",
-                                    border_radius=40,
-                                    padding=40,
-                                    margin=ft.Margin(0, -60, 0, 0),
-                                    shadow=ft.BoxShadow(
-                                        blur_radius=20,
-                                        spread_radius=5,
-                                        color="#00000020",
+                                    height=250,
+                                    expand=True,
+                                    image=ft.DecorationImage(
+                                        src="img/audio_video.gif",
+                                        fit=ft.ImageFit.COVER,
                                     ),
-                                    content=ft.Column(
-                                        expand=True,
-                                        spacing=25,
-                                        horizontal_alignment="center",
-                                        controls=[grid],
-                                    ),
-                                )
+                                ),
+                                ft.Row(
+                                    alignment=ft.MainAxisAlignment.CENTER,
+                                    controls=[
+                                        ft.Container(
+                                            width=1080,
+                                            bgcolor="white",
+                                            border_radius=40,
+                                            padding=40,
+                                            margin=ft.Margin(0, -60, 0, 0),
+                                            shadow=ft.BoxShadow(
+                                                blur_radius=20,
+                                                spread_radius=5,
+                                                color="#00000020",
+                                            ),
+                                            content=ft.Column(
+                                                expand=True,
+                                                spacing=25,
+                                                horizontal_alignment="center",
+                                                controls=[grid],
+                                            ),
+                                        )
+                                    ],
+                                ),
                             ],
                         ),
-                    ],
-                ),
+                    )
+                ],
             )
         )
 
-        # ================= POPULANDO GRID =================
+        # ================= POPULA GRID =================
         async def popular_grid_lentamente():
             for p in separar_linhas_categoria:
                 grid.controls.append(criar_card(p))
