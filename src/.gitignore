@@ -2,11 +2,10 @@ venv/
 
 
 config/config.py
+config/loguin_config.py
 
 # Cache e arquivos temporários do Python
 __pycache__/
 *.pyc
 
 .env
-#infos do login: 
-config\ 
