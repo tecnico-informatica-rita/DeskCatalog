@@ -1,7 +1,9 @@
 import flet as ft
+import asyncio
+import functools
+
 from src.model.model import separar_o_retorno_por_variavel, pegar_linhas_da_view_do_banco
-linhas = pegar_linhas_da_view_do_banco('visao_audio_e_video')
-separar_linhas_categoria_audio = separar_o_retorno_por_variavel(linhas)
+
 
 class audio_view:
     def __init__(self):
@@ -13,182 +15,146 @@ class audio_view:
         page.theme_mode = ft.ThemeMode.LIGHT
         page.padding = 0
 
-        #Ajuda ------------------------------------------------------------------------------------------------------------
+        # ================= AJUDA =================
         def fechar_snack():
             snack_bar.open = False
             page.update()
-        
+
         snack_bar = ft.SnackBar(
-                content=ft.Text("Use o filtro para ver os itens disponíveis e/ou indisponíveis."),
-                action="OK",
-                on_action=lambda _: fechar_snack(),
-                duration=9000 )
-        
+            content=ft.Text("Use o filtro para ver os itens disponíveis e/ou indisponíveis."),
+            action="OK",
+            on_action=lambda _: fechar_snack(),
+            duration=9000,
+        )
+
         page.overlay.append(snack_bar)
 
         def abrir_ajuda(e):
             snack_bar.open = True
             page.update()
-        
-        #Início Menu ---------------------------------------------------------------------------------------------------------------
+
+        # ================= MENU =================
         page.drawer = ft.NavigationDrawer(
-            controls= [
-                ft.NavigationDrawerDestination(
-                    label= "Áudio / Vídeo", icon= ft.Icons.VIDEO_CAMERA_FRONT
-                ),
-                ft.NavigationDrawerDestination(
-                    label= "Sala / Laboratório", icon= ft.Icons.BIOTECH
-                ),
-                ft.NavigationDrawerDestination(
-                    label= "Informática", icon= ft.Icons.LAPTOP
-                ),
-                ft.NavigationDrawerDestination(
-                    label= "Infraestrutura", icon= ft.Icons.CABLE
-                ),
-                ft.NavigationDrawerDestination(
-                    label= "Mobiliário", icon= ft.Icons.WEEKEND
-                ),
-                ft.NavigationDrawerDestination(
-                    label= "Material de Escritório", icon= ft.Icons.EDIT
-                ),
-                ft.NavigationDrawerDestination(
-                    label= "Segurança", icon= ft.Icons.SECURITY
-                ),
-                ft.NavigationDrawerDestination(
-                    label= "Outros", icon= ft.Icons.MISCELLANEOUS_SERVICES
-                ),
-                ft.NavigationDrawerDestination(
-                    label= "Início", icon= ft.Icons.HOME
-                )
+            controls=[
+                ft.NavigationDrawerDestination(label="Áudio / Vídeo", icon=ft.Icons.VIDEO_CAMERA_FRONT),
+                ft.NavigationDrawerDestination(label="Sala / Laboratório", icon=ft.Icons.BIOTECH),
+                ft.NavigationDrawerDestination(label="Informática", icon=ft.Icons.LAPTOP),
+                ft.NavigationDrawerDestination(label="Infraestrutura", icon=ft.Icons.CABLE),
+                ft.NavigationDrawerDestination(label="Mobiliário", icon=ft.Icons.WEEKEND),
+                ft.NavigationDrawerDestination(label="Material de Escritório", icon=ft.Icons.EDIT),
+                ft.NavigationDrawerDestination(label="Segurança", icon=ft.Icons.SECURITY),
+                ft.NavigationDrawerDestination(label="Outros", icon=ft.Icons.MISCELLANEOUS_SERVICES),
+                ft.NavigationDrawerDestination(label="Início", icon=ft.Icons.HOME),
             ]
         )
 
-        #Filtro ------------------------------------------------------------------------------------------------------------
-        filtro_popup = ft.PopupMenuButton(
-            icon= ft.Icons.FILTER_ALT,
-            icon_color= "#b551c7",
-            items = [
-                ft.PopupMenuItem(text= "Mostrar todos", on_click= lambda _: filtrar_status("todos")),
-                ft.PopupMenuItem(text= "Disponíveis", on_click= lambda _: filtrar_status("ativo")),
-                ft.PopupMenuItem(text= "Indisponíveis", on_click= lambda _: filtrar_status("indisponível"))
-            ]
-        )
+        # ================= DADOS =================
+        linhas = pegar_linhas_da_view_do_banco("visao_audio_e_video")
+        separar_linhas_categoria = separar_o_retorno_por_variavel(linhas)
 
-        #Barra de Menu ------------------------------------------------------------------------------------------------------------
-        page.appbar = ft.AppBar(
-            leading= ft.Container(
-                width= 50,
-                height= 50,
-                bgcolor= "#b551c7",
-                border_radius= 50,
-                content= ft.Row(
-                    controls=[
-                        ft.IconButton(
-                        icon= ft.Icons.MENU,
-                        icon_size= 30,
-                        icon_color= "white",
-                        on_click= lambda _: page.open(page.drawer)
-                        )
-                    ],
-                    alignment= ft.MainAxisAlignment.CENTER,
-                    vertical_alignment= ft.CrossAxisAlignment.CENTER
-                ),
-            ),
-            title= ft.Text("", size=22, color=ft.Colors.WHITE),
-            bgcolor= "#b551c7",
-            actions= [
-                ft.Container(
-                    width= 40,
-                    height= 40,
-                    bgcolor= "white",
-                    border_radius= 50,
-                    margin = ft.Margin(0,0,10,0),
-                    content= filtro_popup
-                ),
-                ft.Container(
-                    width= 40,
-                    height= 40,
-                    bgcolor= "white",
-                    border_radius= 50,
-                    ink= True,
-                    margin = ft.Margin(0,0,20,0),
-                    on_click= abrir_ajuda,
-                    content= ft.Icon(
-                        ft.Icons.QUESTION_MARK,
-                        color= "#b551c7",
-                        size= 30
-                    )
-                )
-            ]
-        )
+        # ================= GRID =================
+        grid = ft.GridView(expand=True, max_extent=240, spacing=20, run_spacing=20)
 
-        #Inicio dos Cards ---------------------------------------------------------------------------------------------------------
-        def criar_card(produto, on_click_disponivel=None, on_click_indisponivel=None):
+        def criar_card(produto):
             nome = produto["Produto"]
             status = produto["Status"].strip().lower()
             unidades = produto["Unidades"]
-        
+
             if status == "ativo":
                 cor_botao = ft.Colors.GREEN_400
                 texto_botao = "Disponível"
-                on_click = on_click_disponivel
             else:
                 cor_botao = ft.Colors.RED_400
                 texto_botao = "Indisponível"
-                on_click = on_click_indisponivel
- 
+
             return ft.Container(
                 width=250,
                 padding=15,
                 border_radius=12,
-                bgcolor=ft.Colors.GREY_50,
-                shadow=ft.BoxShadow(blur_radius=12, spread_radius=1, color="#00000020"),
-                content=ft.Column([
-                    ft.Text(nome, weight=ft.FontWeight.BOLD, size=14),
-
-                    #STATUS
-                    ft.ElevatedButton(
-                        text=texto_botao,
-                        bgcolor=cor_botao,
-                        color=ft.Colors.WHITE,
-                        on_click=on_click
-                    ),
-        
-                    ft.Text(f"Unidades: {unidades}"),
-                ])
+                bgcolor="#fffefe",
+                shadow=ft.BoxShadow(blur_radius=10, spread_radius=2, color="#00000020"),
+                content=ft.Column(
+                    alignment=ft.MainAxisAlignment.CENTER,
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                    controls=[
+                        ft.Text(nome, weight=ft.FontWeight.BOLD, size=14),
+                        ft.ElevatedButton(
+                            text=texto_botao,
+                            bgcolor=cor_botao,
+                            color=ft.Colors.WHITE,
+                        ),
+                        ft.Text(f"Unidades: {unidades}"),
+                    ],
+                ),
             )
-        
-        grid = ft.GridView(
-            expand=True,
-            max_extent=240,
-            spacing=20,
-            run_spacing=20
-        )
 
-        for p in separar_linhas_categoria_audio:
-            grid.controls.append(criar_card(p))
-        
-        #Início Filtro ------------------------------------------------------------------------------------------------------------
+        # ================= FILTRO =================
         def filtrar_status(status):
             grid.controls.clear()
 
-            for p in separar_linhas_categoria_audio:
+            for p in separar_linhas_categoria:
                 if status == "todos":
                     grid.controls.append(criar_card(p))
-                elif status == "ativo":
-                    if p["Status"].strip().lower() == "ativo":
-                        grid.controls.append(criar_card(p))
-                elif status == "indisponível":
-                    if p["Status"].strip().lower() != "ativo":
-                        grid.controls.append(criar_card(p))
+                elif status == "ativo" and p["Status"].strip().lower() == "ativo":
+                    grid.controls.append(criar_card(p))
+                elif status == "indisponível" and p["Status"].strip().lower() != "ativo":
+                    grid.controls.append(criar_card(p))
+
             page.update()
 
-    #Estilização da Página ------------------------------------------------------------------------------------------------------------
+        filtro_popup = ft.PopupMenuButton(
+            icon=ft.Icons.FILTER_ALT,
+            icon_color="#b551c7",
+            items=[
+                ft.PopupMenuItem(text="Mostrar todos", on_click=lambda _: filtrar_status("todos")),
+                ft.PopupMenuItem(text="Disponíveis", on_click=lambda _: filtrar_status("ativo")),
+                ft.PopupMenuItem(text="Indisponíveis", on_click=lambda _: filtrar_status("indisponível")),
+            ],
+        )
+
+        # ================= APPBAR =================
+        page.appbar = ft.AppBar(
+            leading=ft.Container(
+                width=50,
+                height=50,
+                bgcolor="#b551c7",
+                border_radius=50,
+                content=ft.IconButton(
+                    icon=ft.Icons.MENU,
+                    icon_size=30,
+                    icon_color="white",
+                    on_click=lambda _: page.open(page.drawer),
+                ),
+            ),
+            title=ft.Text("", size=22, color=ft.Colors.WHITE),
+            bgcolor="#b551c7",
+            actions=[
+                ft.Container(
+                    width=40,
+                    height=40,
+                    bgcolor="white",
+                    border_radius=50,
+                    margin=ft.Margin(0, 0, 10, 0),
+                    content=filtro_popup,
+                ),
+                ft.Container(
+                    width=40,
+                    height=40,
+                    bgcolor="white",
+                    border_radius=50,
+                    ink=True,
+                    margin=ft.Margin(0, 0, 20, 0),
+                    on_click=abrir_ajuda,
+                    content=ft.Icon(ft.Icons.QUESTION_MARK, color="#b551c7", size=30),
+                ),
+            ],
+        )
+
+        # ================= LAYOUT =================
         page.add(
             ft.Container(
                 expand=True,
                 bgcolor="#ffffff",
-                padding=ft.Padding(0, 0, 0, 0),
                 content=ft.Column(
                     expand=True,
                     scroll=ft.ScrollMode.AUTO,
@@ -200,39 +166,43 @@ class audio_view:
                             expand=True,
                             image=ft.DecorationImage(
                                 src="img/audio_video.gif",
-                                fit=ft.ImageFit.COVER),
+                                fit=ft.ImageFit.COVER,
+                            ),
                         ),
                         ft.Row(
-                        alignment=ft.MainAxisAlignment.CENTER,
-                        controls=[
-                            ft.Container(
-                                width=1080,
-                                bgcolor="white",
-                                border_radius=40,
-                                padding=40,
-                                margin=ft.Margin(0, -60, 0, 0), 
-                                shadow=ft.BoxShadow(
-                                    blur_radius=20,
-                                    spread_radius=5,
-                                    color="#fffff",
-                                ),
-                                content=ft.Column(
-                                    expand=True,
-                                    spacing=25,
-                                    horizontal_alignment="center",
-                                    controls= [grid],)
-                            )
-                        ],
-                    )
-                ]
-                )
+                            alignment=ft.MainAxisAlignment.CENTER,
+                            controls=[
+                                ft.Container(
+                                    width=1080,
+                                    bgcolor="white",
+                                    border_radius=40,
+                                    padding=40,
+                                    margin=ft.Margin(0, -60, 0, 0),
+                                    shadow=ft.BoxShadow(
+                                        blur_radius=20,
+                                        spread_radius=5,
+                                        color="#00000020",
+                                    ),
+                                    content=ft.Column(
+                                        expand=True,
+                                        spacing=25,
+                                        horizontal_alignment="center",
+                                        controls=[grid],
+                                    ),
+                                )
+                            ],
+                        ),
+                    ],
+                ),
             )
         )
-#Deve ser puxado pelo arquivo main
-'''
-def main(page: ft.Page):
-    view = audio_view()
-    view.main(page)
 
-ft.app(target=main)
-'''
+        # ================= POPULANDO GRID =================
+        async def popular_grid_lentamente():
+            for p in separar_linhas_categoria:
+                grid.controls.append(criar_card(p))
+                page.update()
+                await asyncio.sleep(0.2)
+
+        page.run_task(popular_grid_lentamente)
+
