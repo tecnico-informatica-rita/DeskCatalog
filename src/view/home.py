@@ -44,7 +44,7 @@ class home_view:
             border_color="transparent",
             on_submit=enviar_pesquisa
         )
-
+        
         # ================= FECHAR APP =================
         def fechar(e):
             try:
@@ -87,7 +87,7 @@ class home_view:
             }
             if e.control.selected_index in rotas:
                 page.go(rotas[e.control.selected_index])
-
+                
         page.drawer = ft.NavigationDrawer(
             on_change=navegar_menu,
             controls=[
@@ -188,7 +188,7 @@ class home_view:
         audio = botao_de_categoria("🎤 Áudio / Vídeo", "/audio")
         infraestrutura = botao_de_categoria("❄️ Infraestrutura", "/infraestrutura")
         mobiliario = botao_de_categoria("🪑 Mobiliário", "/mobiliario")
-        escritorio = botao_de_categoria("🖋️ Material de Escritório", "/escritorio")
+        escritorio = botao_de_categoria("🖋️ Material de Escritório", "/material")
         seguranca = botao_de_categoria("🛡️ Segurança", "/seguranca")
         outros = botao_de_categoria("... Outros", "/outros")
 

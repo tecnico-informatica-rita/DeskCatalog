@@ -10,7 +10,7 @@ from src.view.infraestrutura import infraestrutura_view
 from src.view.material import material_view
 from src.view.mobiliario import mobiliario_view
 
-# histórico e relatório
+
 from src.view.historico_30_dias import Relatorio30DiasView
 from src.view.historico_view import HistoricoView
 
