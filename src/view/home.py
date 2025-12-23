@@ -1,239 +1,161 @@
 import plotly.express as px
 import flet as ft
 from flet.plotly_chart import PlotlyChart
-from src.view.pesquisa import pagina_resultados
 import pandas as pd
+import asyncio
 
 class home_view:
     def __init__(self):
-        pass
+        self.container_graficos = ft.Row(
+            alignment=ft.MainAxisAlignment.CENTER,
+            spacing=20,
+            wrap=True,
+            visible=False,
+            animate_opacity=300
+        )
+
+        self.loading_indicator = ft.Column(
+            [
+                ft.ProgressRing(width=50, height=50, stroke_width=4, color="#b551c7"),
+                ft.Text("Carregando gráficos...", color="#b551c7", size=16, weight="w500")
+            ],
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            visible=True
+        )
 
     def main(self, page: ft.Page):
         page.title = "Home"
-        page.window.resizable = False
         page.theme_mode = ft.ThemeMode.LIGHT
         page.padding = 0
 
-        # ================= ROTAS =================
-        def rota_mudou(e):
-            from src.view.ROTAS import gerenciar_rotas
-            page.views.clear()
-            gerenciar_rotas(page)(e)
-            page.update()
+        # --- FUNÇÕES DE APOIO ---
+        def fechar_app(e):
+            import os
+            os._exit(0)
 
-        # ================= DADOS DE TESTE =================
-        produtos_por_categoria = {
-            "Eletrônicos": ["Mouse Gamer", "Teclado Mecânico", "Monitor"],
-            "Móveis": ["Cadeira", "Mesa de Escritório"],
-            "Acessórios": ["Fone de Ouvido", "Cabo"]
-        }
-
-        # ================= PESQUISA =================
-        def enviar_pesquisa(e):
-            texto = pesquisa.value.strip()
-            if texto != "":
-                pagina_resultados(page, texto, produtos_por_categoria)
-
-        pesquisa = ft.TextField(
-            hint_text="Pesquisa ...",
-            prefix_icon=ft.Icons.SEARCH,
-            border_radius=30,
-            width=500,
-            filled=True,
-            bgcolor="white",
-            border_color="transparent",
-            on_submit=enviar_pesquisa
-        )
-        
-        # ================= FECHAR APP =================
-        def fechar(e):
-            try:
-                page.window.destroy()
-            except AttributeError:
-                try:
-                    page.window_destroy()
-                except Exception:
-                    import os
-                    os._exit(0)
-
-        # ================= AJUDA =================
-        def fechar_snack():
-            snack_bar.open = False
-            page.update()
-
-        snack_bar = ft.SnackBar(
-            content=ft.Text(
-                "Precisa de ajuda? Use a barra de pesquisa para encontrar itens rapidamente. "
-                "Os gráficos acima mostram um resumo visual das categorias cadastradas."
-            ),
-            action="OK",
-            on_action=lambda _: fechar_snack(),
-            duration=9000
-        )
-        page.overlay.append(snack_bar)
-
-        def abrir_ajuda(e):
-            snack_bar.open = True
-            page.update()
-
-        # ================= MENU (ROTAS) =================
-        def navegar_menu(e):
-            rotas = {
-                0: "/",
-                1: "/cadastrar-item",
-                2: "/emprestimo",
-                3: "/devolucao",
-                4: "/relatorio",
-            }
-            if e.control.selected_index in rotas:
-                page.go(rotas[e.control.selected_index])
-                
-        page.drawer = ft.NavigationDrawer(
-            on_change=navegar_menu,
+        # --- MENU LATERAL 
+        drawer = ft.NavigationDrawer(
+            on_change=lambda e: page.go([
+                "/audio",           # 0
+                "/sala",            # 1
+                "/informatica",     # 2
+                "/infraestrutura",  # 3
+                "/mobiliario",      # 4
+                "/material",        # 5
+                "/seguranca",       # 6
+                "/outros",          # 7
+                "/",                # 8 (Início)
+                "/relatorios",      # 9
+                "/historico"        # 10
+            ][e.control.selected_index]),
             controls=[
-                ft.NavigationDrawerDestination(label="Início", icon=ft.Icons.HOME),
-                ft.NavigationDrawerDestination(label="Cadastrar Item", icon=ft.Icons.ADD_CIRCLE),
-                ft.NavigationDrawerDestination(label="Empréstimo", icon=ft.Icons.WIDGETS),
-                ft.NavigationDrawerDestination(label="Devolução", icon=ft.Icons.REPLAY),
-                ft.NavigationDrawerDestination(label="Relatório", icon=ft.Icons.DOWNLOAD),
+                ft.NavigationDrawerDestination(label="Áudio / Vídeo", icon=ft.Icons.VIDEO_CAMERA_FRONT), # 0
+                ft.NavigationDrawerDestination(label="Sala / Laboratório", icon=ft.Icons.BIOTECH),         # 1
+                ft.NavigationDrawerDestination(label="Informática", icon=ft.Icons.LAPTOP),              # 2
+                ft.NavigationDrawerDestination(label="Infraestrutura", icon=ft.Icons.CABLE),            # 3
+                ft.NavigationDrawerDestination(label="Mobiliário", icon=ft.Icons.WEEKEND),              # 4
+                ft.NavigationDrawerDestination(label="Material de Escritório", icon=ft.Icons.EDIT),     # 5
+                ft.NavigationDrawerDestination(label="Segurança", icon=ft.Icons.SECURITY),              # 6
+                ft.NavigationDrawerDestination(label="Outros", icon=ft.Icons.MISCELLANEOUS_SERVICES),    # 7
+                ft.Divider(),
+                ft.NavigationDrawerDestination(label="Início", icon=ft.Icons.HOME),                    # 8
+                ft.NavigationDrawerDestination(label="Relatórios", icon=ft.Icons.ASSESSMENT),          # 9
+                ft.NavigationDrawerDestination(label="Histórico", icon=ft.Icons.HISTORY),               # 10
             ]
         )
 
-        # ================= GRÁFICOS =================
-        # Gráfico de barra
-        dadosb = [
-            {"Categoria": "Eletrônicos", "Qtd": 15},
-            {"Categoria": "Móveis", "Qtd": 5},
-            {"Categoria": "Periféricos", "Qtd": 20}
-        ]
-        df_barra = pd.DataFrame(dadosb)
-        barra = px.bar(
-            df_barra,
-            x="Categoria",
-            y="Qtd",
-            title="Empréstimos Diários por Categoria",
-            color="Categoria",
-            color_discrete_sequence=["#d2b0e9", "#e067c7", "#b551c7", "#00357a"]
-        )
-        grafico_barra = ft.Container(content=PlotlyChart(barra, expand=True), width=425, height=375)
-
-        # Gráfico de pizza
-        dadosp = {"Ativos": 10, "Inativos": 3}
-        df_pizza = pd.DataFrame({"Item": list(dadosp.keys()), "Percentual": list(dadosp.values())})
-        pizza = px.pie(
-            df_pizza,
-            names="Item",
-            values="Percentual",
-            title="Ativos e Inativos",
-            color_discrete_sequence=["#d2b0e9", "#e067c7", "#b551c7", "#00357a"]
-        )
-        grafico_pizza = ft.Container(content=PlotlyChart(pizza, expand=True), width=425, height=375)
-
-        # Gráfico empilhado
-        dadose = [{"Categoria": "Livros", "Qtd": 8}, {"Categoria": "Ferramentas", "Qtd": 3}]
-        df_barras = pd.DataFrame(dadose)
-        empilhado = px.bar(
-            df_barras,
-            x="Categoria",
-            y=[col for col in df_barras.columns if col != "Categoria"],
-            title="Itens Pendentes por Categoria",
-            color_discrete_sequence=["#d2b0e9", "#e067c7", "#00357a"]
-        )
-        grafico_empilhado = ft.Container(content=PlotlyChart(empilhado, expand=True), width=425, height=375)
-
-        # ================= APPBAR =================
-        page.appbar = ft.AppBar(
-            leading=ft.Container(
-                width=50,
-                height=50,
-                bgcolor="#b551c7",
-                border_radius=50,
-                content=ft.IconButton(
-                    icon=ft.Icons.MENU,
-                    icon_size=30,
-                    icon_color="white",
-                    on_click=lambda _: page.open(page.drawer)
-                ),
-            ),
-            title=ft.Text("Menu", size=22, color=ft.Colors.WHITE),
+        # --- BARRA SUPERIOR ---
+        appbar = ft.AppBar(
+            leading=ft.IconButton(icon=ft.Icons.MENU, icon_color="white", on_click=lambda _: page.open(drawer)),
+            title=ft.Text("Início", size=22, color="white"),
             bgcolor="#b551c7",
             actions=[
-                ft.Container(
-                    width=40, height=40, bgcolor="white", border_radius=50, ink=True,
-                    margin=ft.Margin(0,0,10,0),
-                    content=ft.Icon(ft.Icons.LOGOUT, color="#b551c7", size=30),
-                    on_click=fechar
-                ),
-                ft.Container(
-                    width=40, height=40, bgcolor="white", border_radius=50, ink=True,
-                    margin=ft.Margin(0,0,20,0),
-                    content=ft.Icon(ft.Icons.QUESTION_MARK, color="#b551c7", size=30),
-                    on_click=abrir_ajuda
-                )
-            ]
+                ft.Container(width=40, height=40, bgcolor="white", border_radius=50, margin=ft.Margin(0,0,10,0),
+                             content=ft.IconButton(ft.Icons.LOGOUT, icon_color="#b551c7", icon_size=20, on_click=fechar_app)),
+            ],
         )
 
-        # ================= BOTÕES (ROTAS) =================
-        def botao_de_categoria(text, rota):
+        def botao_cat(text, rota):
             return ft.ElevatedButton(
-                content=ft.Text(text, size=22, color=ft.Colors.WHITE, weight="w500"),
-                bgcolor="#b551c7",
-                width=350,
-                height=100,
-                on_click=lambda _: page.go(rota)
+                content=ft.Text(text, size=20, color="white", weight="w500"),
+                bgcolor="#b551c7", width=350, height=100, on_click=lambda _: page.go(rota)
             )
 
-        salas = botao_de_categoria("🏫 Salas / Laboratórios", "/sala")
-        informatica = botao_de_categoria("💻 Informática", "/informatica")
-        audio = botao_de_categoria("🎤 Áudio / Vídeo", "/audio")
-        infraestrutura = botao_de_categoria("❄️ Infraestrutura", "/infraestrutura")
-        mobiliario = botao_de_categoria("🪑 Mobiliário", "/mobiliario")
-        escritorio = botao_de_categoria("🖋️ Material de Escritório", "/material")
-        seguranca = botao_de_categoria("🛡️ Segurança", "/seguranca")
-        outros = botao_de_categoria("... Outros", "/outros")
-
-        # ================= LAYOUT =================
+        # --- MONTAGEM DA PÁGINA ---
         page.views.append(
             ft.View(
                 route="/",
+                appbar=appbar,
+                drawer=drawer, 
+                padding=0,
                 controls=[
-                    ft.Container(
+                    ft.Column(
+                        scroll=ft.ScrollMode.AUTO,
                         expand=True,
-                        bgcolor="#ffffff",
-                        content=ft.Column(
-                            [
-                                ft.Stack(
-                                    controls=[
-                                        ft.Container(
-                                            height=650,
-                                            expand=True,
-                                            image=ft.DecorationImage(src="img/degrade_home.gif", fit=ft.ImageFit.COVER),
-                                        ),
-                                        ft.Container(
-                                            padding=260,
-                                            alignment=ft.alignment.top_center,
-                                            content=ft.Column([pesquisa], horizontal_alignment=ft.CrossAxisAlignment.CENTER)
-                                        ),
-                                        ft.Container(
-                                            content=ft.Row([grafico_barra, grafico_pizza, grafico_empilhado],
-                                                           alignment=ft.MainAxisAlignment.CENTER, spacing=20),
-                                            top=330,
-                                            left=0,
-                                            right=0,
-                                            alignment=ft.alignment.center,
-                                        )
-                                    ]
-                                ),
-                                ft.Row([salas, informatica, audio], alignment=ft.MainAxisAlignment.CENTER, spacing=10),
-                                ft.Row([infraestrutura, mobiliario, escritorio], alignment=ft.MainAxisAlignment.CENTER, spacing=10),
-                                ft.Row([seguranca, outros], alignment=ft.MainAxisAlignment.CENTER, spacing=10),
-                            ],
-                            expand=True,
-                            scroll=ft.ScrollMode.AUTO,
-                            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                            spacing=20,
-                        )
+                        controls=[
+                            ft.Stack([
+                                ft.Container(height=400, image=ft.DecorationImage(src="img/degrade_home.gif", fit=ft.ImageFit.COVER)),
+                                ft.Container(alignment=ft.alignment.center, padding=ft.padding.only(top=150), 
+                                             content=ft.TextField(hint_text="Pesquisa ...", width=500, border_radius=30, bgcolor="white", border_color="transparent")),
+                            ]),
+                            
+                           
+                            ft.Container(
+                                padding=40,
+                                width=page.width,
+                                content=ft.Column([self.loading_indicator, self.container_graficos], horizontal_alignment="center")
+                            ),
+
+                            
+                            ft.Container(
+                                padding=ft.padding.only(bottom=60),
+                                content=ft.Column([
+                                    ft.Row([botao_cat("🏫 Salas / Labs", "/sala"), botao_cat("💻 Informática", "/informatica"), botao_cat("🎤 Áudio / Vídeo", "/audio")], alignment="center"),
+                                    ft.Row([botao_cat("❄️ Infraestrutura", "/infraestrutura"), botao_cat("🪑 Mobiliário", "/mobiliario"), botao_cat("🖋️ Material Escritório", "/material")], alignment="center"),
+                                    ft.Row([botao_cat("🛡️ Segurança", "/seguranca"), botao_cat("... Outros", "/outros")], alignment="center"),
+                                ], spacing=20)
+                            )
+                        ]
                     )
                 ]
             )
         )
+
+        async def carregar_tudo():
+            await asyncio.sleep(0.8)
+            try:
+                # Grafico 1: emprestimos
+                df1 = pd.DataFrame([{"Cat": "Eletrônicos", "Qtd": 15}, {"Cat": "Móveis", "Qtd": 5}, {"Cat": "Periféricos", "Qtd": 20}])
+                fig1 = px.bar(df1, x="Cat", y="Qtd", color="Cat", title="Empréstimos Diários", color_discrete_sequence=["#d2b0e9", "#e067c7", "#b551c7"])
+                
+                # Grafico 2: ativos/inativos
+                df2 = pd.DataFrame({"Status": ["Ativos", "Inativos"], "Qtd": [10, 3]})
+                fig2 = px.pie(df2, names="Status", values="Qtd", title="Status Geral", color_discrete_sequence=["#d2b0e9", "#b551c7"])
+                
+                # Grafico 3: pendentes
+                df3 = pd.DataFrame([{"Cat": "Livros", "v": 8}, {"Cat": "Ferramentas", "v": 3}])
+                fig3 = px.bar(df3, x="Cat", y="v", title="Itens Pendentes", color_discrete_sequence=["#d2b0e9"])
+
+                for f in [fig1, fig2, fig3]:
+                    f.update_layout(paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', height=320, margin=dict(l=10, r=10, t=50, b=10))
+
+                self.container_graficos.controls.clear()
+                
+                
+                for fig in [fig1, fig2, fig3]:
+                    self.container_graficos.controls.append(
+                        ft.Container(
+                            content=PlotlyChart(fig, expand=True),
+                            width=380, bgcolor="white", border_radius=15, padding=10,
+                            shadow=ft.BoxShadow(blur_radius=15, color=ft.Colors.with_opacity(0.1, "black"))
+                        )
+                    )
+
+                self.loading_indicator.visible = False
+                self.container_graficos.visible = True
+                page.update()
+            except Exception as e:
+                print(f"Erro: {e}")
+
+        page.run_task(carregar_tudo)
+        page.update()

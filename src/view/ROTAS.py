@@ -27,7 +27,8 @@ def gerenciar_rotas(page: ft.Page):
         "/infraestrutura": infraestrutura_view,
         "/material": material_view,
         "/mobiliario": mobiliario_view,
-        "/historico30": Relatorio30DiasView,
+        
+        "/relatorio30": Relatorio30DiasView,
         "/historico": HistoricoView,
     }
 
