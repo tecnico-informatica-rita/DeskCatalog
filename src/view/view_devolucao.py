@@ -1,14 +1,6 @@
-# view.py
-"""
-Camada View:
-- Contém todas as funções responsáveis pela interação com o usuário.
-- Funções de exibição e de obtenção de dados.
-"""
-
 import flet as ft
 from model.model_deskcatalog import Emprestimo
 from controller.controller import ControllerDeskCatalog
-from datetime import datetime
 
 class devolucao_view:
     def __init__(self, conn):
@@ -100,7 +92,7 @@ class devolucao_view:
 
         # ===================== AUTOCOMPLETE ==========================
         def atualizar_autocomplete(e):
-            texto = search_input.value.strip().title()
+            texto = (search_input.value or "").strip().title()
             autocomplete.controls.clear()
             if texto:
                 sugestoes = [n["produto"] for n in produtos_emprestados if texto in n["produto"].title()]
@@ -121,7 +113,7 @@ class devolucao_view:
             combo_categoria.update()
             page.update()
 
-        # ===================== FEEDBACK ==========================
+        # ===================== FEEDBACK =========================
         def snack(msg, cor):
             sb = ft.SnackBar(ft.Text(msg), bgcolor=cor)
             page.overlay.append(sb)
@@ -149,17 +141,32 @@ class devolucao_view:
         # ===================== BOTÃO DEVOLVER ==========================
         def devolver(e):
             try:
-                nome_produto = search_input.value.strip().title()
+                nome_produto = (search_input.value or "").strip().title()
                 categoria = combo_categoria.value
                 qtd = campo_qtd.value
-                nome_devolucao = campo_nome.value.strip()
+                nome_devolucao = (campo_nome.value or "").strip()
 
-                data_fake = datetime.now().strftime("%Y-%m-%d")
-                emprestimo = Emprestimo(nome_devolucao=nome_devolucao, data_emprestimo=data_fake)
-                resposta = controller.confirmacao_devolucao(emprestimo, nome_produto, qtd)
+                # validações rápidas no front-end
+                if not nome_produto:
+                    return snack("⚠ Informe o produto a devolver.", "red")
+                if not categoria:
+                    return snack("⚠ Produto inválido. Selecione a sugestão correta.", "red")
+                if not nome_devolucao:
+                    return snack("⚠ Informe o nome de quem devolve.", "red")
+                if not qtd:
+                    return snack("⚠ Informe a quantidade.", "red")
+
+                # Criar o objeto Emprestimo usando o campo que seu controller espera
+                emprestimo = Emprestimo(nome_emprestimo=nome_devolucao)
+
+                # Chamar a confirmação (uso da função existente no seu controller)
+                resposta = controller.confimacao_usuario(emprestimo, nome_produto, categoria, qtd)
 
                 if resposta["status"] == "ok":
                     return finalizar(emprestimo, resposta["qtd"], resposta["pat"])
+
+                if resposta["status"] == "zerado":
+                    return snack("❌ Nenhum item deste produto está emprestado!", "red")
 
                 if resposta["status"] == "insuficiente":
                     qtd_disp = resposta["qtd"]
@@ -227,5 +234,3 @@ class devolucao_view:
 
         carregar_tabela()
         return layout
-
-

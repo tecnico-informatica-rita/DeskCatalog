@@ -401,6 +401,59 @@ def view_grafico_itensPenCat(conn):
         except Exception as e:
             raise ValueError (f"Erro inesperado ao realizar query: {e}")
         
+def criar_view_produtos_emprestados_30_dias(conn):
+        sql_select_view = """
+            CREATE OR REPLACE VIEW vw_itens_para_devolucao_30 AS
+            SELECT n.nome_produto, e.nome_emprestimos, TO_CHAR(e.data_emprestimo, 'DD/MM/YYYY') AS data_brasil, COUNT(e.nu_patrimonio) AS quantidade_emprestada
+            FROM emprestimos AS e
+            JOIN produtos_individuais AS pi ON pi.nu_patrimonio = e.nu_patrimonio
+            JOIN nomes_produtos AS n ON n.id_produto = pi.id_produto
+            JOIN status_disponibilidade_produto AS s ON s.id_disponibilidade = e.id_disponibilidade
+            WHERE
+                s.descricao_disponibilidade = 'Em atraso' 
+                OR (s.descricao_disponibilidade = 'Emprestado' AND e.data_emprestimo >= (CURRENT_DATE - INTERVAL '30 days'))
+            GROUP BY n.nome_produto, e.nome_emprestimos, e.data_emprestimo
+            ORDER BY e.data_emprestimo DESC;
+        """
+        try:
+            with conn.cursor() as cur:
+                cur.execute(sql_select_view,)
+            return True
+        except Exception as e:
+            raise ValueError (f"Erro inesperado ao realizar query: {e}")
+        
+def criar_view_devolucoes(conn):
+        sql_select_view = """
+            CREATE OR REPLACE VIEW vw_devolucoes AS
+            SELECT 
+	        c.nome_categoria,
+            n.nome_produto,
+            e.nome_emprestimos AS pessoa,
+            TO_CHAR(e.data_emprestimo, 'DD/MM/YYYY') AS data_emprestimo,
+            s.descricao_disponibilidade,
+            COUNT(*) AS quantidade_total
+            FROM emprestimos AS e
+            JOIN produtos_individuais AS pi ON pi.nu_patrimonio = e.nu_patrimonio
+            JOIN nomes_produtos AS n ON n.id_produto = pi.id_produto
+            JOIN categorias_produto AS c ON c.id_categoria = n.id_categoria
+            JOIN status_disponibilidade_produto AS s ON s.id_disponibilidade = e.id_disponibilidade
+            WHERE s.descricao_disponibilidade IN ('Emprestado', 'Em atraso')
+            GROUP BY 
+	        c.nome_categoria,
+            n.nome_produto,
+            e.nome_emprestimos,
+            TO_CHAR(e.data_emprestimo, 'DD/MM/YYYY'),
+            s.descricao_disponibilidade
+            ORDER BY 
+            MAX(e.data_emprestimo) DESC;
+        """
+        try:
+            with conn.cursor() as cur:
+                cur.execute(sql_select_view,)
+            return True
+        except Exception as e:
+            raise ValueError (f"Erro inesperado ao realizar query: {e}")
+        
 def criar_todas_views(conn):
     criar_view_produtos_exibicao_qtdAtivos(conn)
     criar_view_todos_produtos(conn)
@@ -408,6 +461,9 @@ def criar_todas_views(conn):
     view_grafico_emprestimoCat_diarios(conn)
     view_grafico_itensPenCat(conn)
     criar_view_prod_disponiveis(conn)
+    criar_view_produtos_emprestados_30_dias(conn)
+    criar_view_devolucoes(conn)
+
 
     #   ================ POPULA O BANCO E CRIA AS VIEW ==============
 

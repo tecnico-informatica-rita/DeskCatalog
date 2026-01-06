@@ -9,7 +9,6 @@ Camada Controller (Controle):
 
 import model.model_deskcatalog as model
 from model.model_deskcatalog import MSG
-import view_cadastro as view
 import database.database_banco as db
 
 
@@ -20,7 +19,6 @@ class ControllerDeskCatalog:
   def __init__(self, conn):
       """Inicializa o controlador com os gerenciadores do modelo."""
       self.conn = conn
-      self.view = view # Referência para o módulo da View
       self.gerenciador_produto = model.GerenciadorProduto(conn)
       self.gerenciador_emprestimo = model.GerenciarEmprestimo(conn)
       self.gerenciador_alteracoes = model.GerenciarAlteracoes(conn)
@@ -167,8 +165,50 @@ class ControllerDeskCatalog:
   
   #       REALIZANDO DEVOLUÇÃO
   
-  def fazer_devolucao(self,):
-    pass
+  def exibir_prod_devolucao(self,): #Finalizar
+    resultados = self.gerenciador_emprestimo.exibir_devolucoes()
+
+    lista = []
+    for i in resultados:
+      resultado_dict = {
+        'categoria': i[0],
+        'produto': i[1],
+        'nome_emprestimo': i[2],
+        'data_emprestimo': i[3],
+        'disponibilidade': i[4],
+        'qtd': i[5],
+      }
+      lista.append(resultado_dict)
+
+    return lista
+  
+  '''def fazer_devolucao(self, id_produto, categoria, qtd):
+    return self.gerenciador_emprestimo.realizar_devolucao(id_produto, categoria, qtd)'''
+  
+  def confirmacao_usuario_devolucao(self, emprestimo, nome_produto, qtd):
+    emprestimo.validar()
+
+    # Verificar patrimônios emprestados pelo usuário
+    qtd_banco, pat_validos = self.gerenciador_emprestimo.validar_nuP_total(nome_produto, emprestimo, qtd)
+
+    # Nenhum para devolver
+    if not pat_validos:
+        return {"status": "zerado", "qtd": 0, "pat": []}
+
+    # Tem todos os itens
+    if qtd_banco is True:
+        return {"status": "ok", "qtd": qtd, "pat": pat_validos}
+
+    # Tem só parte deles -> devolução parcial
+    if not qtd_banco or len(pat_validos) < qtd:
+        qtd_disponivel = len(pat_validos)
+        return {"status": "insuficiente", "qtd": qtd_disponivel, "pat": pat_validos}
+      
+  def fazer_devolucao(self, emprestimo, qtd, pat_validos):
+    emprestado, qtd_devolvida = self.gerenciador_emprestimo.realizar_devolucao( emprestimo, qtd, pat_validos)
+    return {"status": "sucesso", "qtd_registrada": qtd_devolvida}
+
+
 
   # ==================== LOOP PRINCIPAL DA APLICAÇÃO ====================
 
