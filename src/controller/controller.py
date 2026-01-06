@@ -1,4 +1,9 @@
 # controller.py
+
+import model.model_deskcatalog as model
+from model.model_deskcatalog import MSG
+import database.database_banco as db
+
 """
 Camada Controller (Controle):
 - Orquestra o fluxo da aplicação.
@@ -6,12 +11,6 @@ Camada Controller (Controle):
   para lógica de negócios ou dados, e envia os resultados para a View.
 - Gerencia o estado da aplicação (ex: o carrinho).
 """
-
-import model.model_deskcatalog as model
-from model.model_deskcatalog import MSG
-import database.database_banco as db
-
-
 
 class ControllerDeskCatalog:
   """Interliga o model ao banco de dados e a view"""
@@ -48,6 +47,7 @@ class ControllerDeskCatalog:
   
   # ==================== FUNÇÕES DE PROCESSAMENTO (AÇÕES DO MENU) ====================
 
+  # Cadastrar itens ---------------------------------------------------------------------------------------------------------
   def adicionar_produto_existente(self, id_prod, produto: model.Produto):
     id_status = self.validar_status(produto)
     produto.produto_banco(id_prod, id_status) 
@@ -93,10 +93,8 @@ class ControllerDeskCatalog:
     except Exception:
         raise ValueError(MSG["erro_geral"]["mensagem"])
   
-  def alterar_dados_produto(self, ):
-    pass
 
-
+  # Exibição necessária para a função 'Cadastrar' -------------------------------------------------------------------------------
   def exibir_todos_produtos(self,):
     resultados = self.gerenciador_produto.exibir_todos_produtos()
 
@@ -112,6 +110,7 @@ class ControllerDeskCatalog:
 
     return lista
     
+
   def exibir_todosP_qtd(self,):
     resultados = self.gerenciador_produto.exibir_todos_produtos_qtdAtivos()
 
@@ -127,8 +126,8 @@ class ControllerDeskCatalog:
 
     return lista
     
-#       REALIZANDO EMPRÉSTIMOS
 
+  # Realizar empréstimos --------------------------------------------------------------------------------------------------------
   def confimacao_usuario(self, emprestimo, nome, categoria, qtd):
     self.gerenciador_emprestimo.atualizar_status_atrasado()
     emprestimo.validar()
@@ -148,6 +147,7 @@ class ControllerDeskCatalog:
     emprestado, qtd_emprestimos = self.gerenciador_emprestimo.realizar_emprestimo( emprestimo, qtd, pat_validos)
     return {"status": "sucesso", "qtd_registrada": qtd_emprestimos}
 
+  # Exibição necessária para a função 'Empréstimo' -------------------------------------------------------------------------------
   def exibir_prod_disponiveis(self,):
     resultados = self.gerenciador_emprestimo.exibir_produtos_disponiveis()
 
@@ -163,24 +163,8 @@ class ControllerDeskCatalog:
 
     return lista
   
-  #       REALIZANDO DEVOLUÇÃO
-  
-  def exibir_prod_devolucao(self,): #Finalizar
-    resultados = self.gerenciador_emprestimo.exibir_devolucoes()
-
-    lista = []
-    for i in resultados:
-      resultado_dict = {
-        'categoria': i[0],
-        'produto': i[1],
-        'nome_emprestimo': i[2],
-        'data_emprestimo': i[3],
-        'disponibilidade': i[4],
-        'qtd': i[5],
-      }
-      lista.append(resultado_dict)
-
-    return lista
+ 
+  # Realizar devoluções (NÃO FINALIZADA) ----------------------------------------------------------------------------------------------------------
   
   '''def fazer_devolucao(self, id_produto, categoria, qtd):
     return self.gerenciador_emprestimo.realizar_devolucao(id_produto, categoria, qtd)'''
@@ -207,15 +191,25 @@ class ControllerDeskCatalog:
   def fazer_devolucao(self, emprestimo, qtd, pat_validos):
     emprestado, qtd_devolvida = self.gerenciador_emprestimo.realizar_devolucao( emprestimo, qtd, pat_validos)
     return {"status": "sucesso", "qtd_registrada": qtd_devolvida}
+  
 
+  # Exibição necessária para a função 'Empréstimo' -------------------------------------------------------------------------------
+  def exibir_prod_devolucao(self,):
+    resultados = self.gerenciador_emprestimo.exibir_devolucoes()
 
+    lista = []
+    for i in resultados:
+      resultado_dict = {
+        'categoria': i[0],
+        'produto': i[1],
+        'nome_emprestimo': i[2],
+        'data_emprestimo': i[3],
+        'disponibilidade': i[4],
+        'qtd': i[5],
+      }
+      lista.append(resultado_dict)
 
-  # ==================== LOOP PRINCIPAL DA APLICAÇÃO ====================
-
-  def run(self):
-    """Função principal que executa o sistema."""
-    pass
-    
+    return lista
     
 
 

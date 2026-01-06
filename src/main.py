@@ -1,4 +1,4 @@
-# main.py ANTES DA LIMPEZA
+# main.py LIMPEZA FEITA
 
 """
 Ponto de entrada principal do projeto.
@@ -17,8 +17,6 @@ Responsabilidades:
 import flet as ft
 import database.database_banco as database   # Para setup e conexão
 import controller.controller as controller   # O cérebro da aplicação
-from view_cadastro_teste import pagina_produtos
-from view_emprestimo import pagina_emprestimo
 from view.view_cadastro_gi import cadastro_view
 from view.view_emprestimo_gi import emprestimo_view
 from view.view_devolucao import devolucao_view

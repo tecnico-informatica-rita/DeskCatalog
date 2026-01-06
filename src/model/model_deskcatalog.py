@@ -32,7 +32,7 @@ MSG = {
 
 # ==================== CLASSES DE ENTIDADE ====================
 
-#PODEMOS USAR ESSA CLASSE PARA SER NOSSO CATALOGO
+# PODEMOS USAR ESSA CLASSE PARA SER NOSSO CATALOGO
 
 class Produto:
     """Classe que representa um produto no sistema do catálogo"""

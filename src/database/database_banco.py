@@ -1,15 +1,14 @@
 import psycopg2
+import csv
+from config.config import DB_CONFIG
 """
 Responsável pela conexão com o banco de dados,
 criação de tabelas e população de dados iniciais.
 """
-import psycopg2
-import csv
-from config.config import DB_CONFIG
 
 ARQUIVO_CSV = 'produtosCerto.csv'
 
-    #   ================ CONEXÃO COM O BANCO ==============
+#   ================ CONEXÃO COM O BANCO ==============
 
 def get_db_connection():
     """Cria e retorna uma nova conexão com o banco de dados."""
@@ -21,13 +20,13 @@ def get_db_connection():
         print("Verifique suas credenciais em 'config.py' e se o servidor está rodando.")
         raise e
 
-    #   ================ CRIAÇÃO DAS TABELAS ==============
+#   ================ CRIAÇÃO DAS TABELAS ==============
 
 def criar_tabelas(conn):
     """Cria as tabelas 'categorias_produto' e 'status_produto', 
     'status_disponibilidade_produto', 'etc' se não existirem."""
 
-# -- tabelas de apoio:
+    # -- tabelas de apoio:
     create_categorias_produto = """
     CREATE TABLE IF NOT EXISTS categorias_produto (
         id_categoria SERIAL PRIMARY KEY,
@@ -58,7 +57,8 @@ def criar_tabelas(conn):
         FOREIGN KEY (id_categoria) REFERENCES categorias_produto(id_categoria)
         );
     """
-# -- tabelas principais:
+
+    # -- tabelas principais:
     create_produtos_individuais = """
     CREATE TABLE IF NOT EXISTS produtos_individuais (
         id_produto_individual SERIAL PRIMARY KEY,
@@ -103,7 +103,7 @@ def criar_tabelas(conn):
         conn.rollback()
 
 
-    #   ================ INSERÇÕES NO BANCO ==============
+#   ================ INSERÇÕES NO BANCO ==============
 
 def inserir_categorias_produto(conn):
     categorias = [
@@ -181,8 +181,7 @@ def inserir_status_disponibilidade_produto(conn):
     except (Exception, psycopg2.Error) as e:
         raise ValueError (f"Erro ao inserir dados no PostgreSQL: {e}")
     
-        #       INSERIR OS PRODUTOS ATRAVÉS DE UM ARQUIVO CSV
-
+# Inserir os produtos através de um arquivo CSV ----------------------------------------------------------------------------
 id_categoria = {}
 id_status = {}
 
@@ -263,7 +262,7 @@ def inserir_nomes_produtos_e_individuais(conn):
         raise ValueError (f"Erro ao inserir dados no PostgreSQL: {e}")
     
 
-    #   ================ CRIAÇÃO DAS VIEWS ===========================
+#   ================ CRIAÇÃO DAS VIEWS ===========================
 
 def criar_view_todos_produtos(conn): # consertar para transformar ela em histórico
     sql_select_view = """
@@ -465,7 +464,7 @@ def criar_todas_views(conn):
     criar_view_devolucoes(conn)
 
 
-    #   ================ POPULA O BANCO E CRIA AS VIEW ==============
+#   ================ POPULA O BANCO E CRIA AS VIEW ==============
 
 def popular_dados_padrao(conn):
     """Popula o banco com dados iniciais se estiver vazio."""

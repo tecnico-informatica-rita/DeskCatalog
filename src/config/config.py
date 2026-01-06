@@ -1,7 +1,8 @@
+# Bibliotecas necessárias ------------------------------------------------------------------------------------------------------
 import os
 from dotenv import load_dotenv
 
-# Gerando conexão com banco de dados
+# Gerando conexão com banco de dados -------------------------------------------------------------------------------------------
 load_dotenv()
 
 DB_USER = os.environ.get("DB_USER")
