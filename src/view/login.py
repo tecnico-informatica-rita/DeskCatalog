@@ -1,6 +1,6 @@
 import flet as ft
-from src.controller.controller import autenticar_loguin_completo
-from src.database.database import popular_dados_login
+from controller.controller import autenticar_loguin_completo
+from database.database import popular_dados_login
 
 def main(page: ft.Page):
     page.title = "Login"

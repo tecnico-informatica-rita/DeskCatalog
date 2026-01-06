@@ -1,18 +1,18 @@
 import flet as ft
 
-from src.view.home import home_view
-from src.view.informatica import informatica_view
-from src.view.sala import sala_view
-from src.view.audio import audio_view
-from src.view.outros import outros_view
-from src.view.seguranca import seguranca_view
-from src.view.infraestrutura import infraestrutura_view
-from src.view.material import material_view
-from src.view.mobiliario import mobiliario_view
+from view.home import home_view
+from view.informatica import informatica_view
+from view.sala import sala_view
+from view.audio import audio_view
+from view.outros import outros_view
+from view.seguranca import seguranca_view
+from view.infraestrutura import infraestrutura_view
+from view.material import material_view
+from view.mobiliario import mobiliario_view
 
 
-from src.view.historico_30_dias import Relatorio30DiasView
-from src.view.historico_view import HistoricoView
+from view.historico_30_dias import Relatorio30DiasView
+from view.historico_view import HistoricoView
 
 
 def gerenciar_rotas(page: ft.Page):

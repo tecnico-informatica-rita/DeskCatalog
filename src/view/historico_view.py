@@ -1,5 +1,5 @@
 import flet as ft
-from src.controller.controller import mostrar_historico_transacoes_de_emprestimo
+from controller.controller import mostrar_historico_transacoes_de_emprestimo
 
 class HistoricoView:
     def __init__(self):

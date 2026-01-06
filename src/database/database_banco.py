@@ -493,3 +493,32 @@ def popular_dados_padrao(conn):
     except Exception as e:
         print(f"❌ Erro ao popular dados padrão: {e}")
         conn.rollback()
+
+
+#   ================ INSERE LOGIN NO BANCO ==============
+
+def popular_dados_login(conn, lista_email_senha):
+    """insere o login realizado no banco de dados"""
+    try:
+        with conn.cursor() as cursor:
+            cursor.executemany(
+                """
+                INSERT INTO loguin_informacoes(email_login, senha_login)
+                VALUES (%s, %s)
+                ON CONFLICT (email_login) DO NOTHING;
+                """,
+                lista_email_senha
+            )
+            conn.commit()
+            
+            linhas = cursor.rowcount   #conta qts linhas inseriu
+
+            if linhas == 0:
+                return False, "⚠️ Email já existe no banco!"
+
+            return True, "Inserido com sucesso!"
+
+    except Exception as e:
+        conn.rollback()
+        return False, f"❌ Erro ao salvar no banco: {str(e)}"
+    

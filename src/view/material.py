@@ -1,7 +1,7 @@
 import flet as ft
 import asyncio
 
-from src.model.model import separar_o_retorno_por_variavel, pegar_linhas_da_view_do_banco
+from model.model import separar_o_retorno_por_variavel, pegar_linhas_da_view_do_banco
 
 
 class material_view:

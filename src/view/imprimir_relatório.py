@@ -1,5 +1,5 @@
 import flet as ft
-from src.controller.controller import mostrar_informaçoes_dos_ultimos_30_dias
+from controller.controller import mostrar_informaçoes_dos_ultimos_30_dias
 
 class Relatorio30DiasView:
     
