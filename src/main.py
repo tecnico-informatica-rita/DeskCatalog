@@ -1,4 +1,4 @@
-# main.py
+# main.py ANTES DA LIMPEZA
 
 """
 Ponto de entrada principal do projeto.
