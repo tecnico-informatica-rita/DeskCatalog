@@ -68,4 +68,16 @@ def main(page: ft.Page):
 #if __name__ == "__main__":
     #main()
 
-ft.app(target=main)
+#ft.app(target=main)
+
+
+#  PARTE DA ANA -----------------------------------------------------------------------------------------------------------------
+'''import flet as ft
+from view.ROTAS import gerenciar_rotas
+
+def main(page: ft.Page):
+    page.on_route_change = gerenciar_rotas(page)
+    page.go(page.route)
+
+ft.app(target=main)'''
+
