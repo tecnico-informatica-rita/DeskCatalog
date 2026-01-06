@@ -17,9 +17,9 @@ Responsabilidades:
 import flet as ft
 import database.database_banco as database   # Para setup e conexão
 import controller.controller as controller   # O cérebro da aplicação
-from view.view_cadastro_gi import cadastro_view
-from view.view_emprestimo_gi import emprestimo_view
-from view.view_devolucao import devolucao_view
+from view.cadastro import cadastro_view
+from view.emprestimo import emprestimo_view
+from view.devolucao import devolucao_view
 import sys            # Para encerrar o programa em caso de erro de DB
 
 def main(page: ft.Page):
@@ -44,16 +44,16 @@ def main(page: ft.Page):
 
         #page.add(pagina_emprestimo(app, page))
         #app.run()
-        view = cadastro_view(conn)
-        page.add(view.main_cadastro(page))
+        #view = cadastro_view(conn)
+        #page.add(view.main_cadastro(page))
 
         #view = emprestimo_view(conn)
         #page.add(view.main_emprestimo(page))
         
         #page.add(devolucao_view(conn))
 
-        #view = devolucao_view(conn)
-        #page.add(view.main_devolucao(page))
+        view = devolucao_view(conn)
+        page.add(view.main_devolucao(page))
 
         
     except Exception as e:

@@ -9,7 +9,7 @@ from pesquisa import pagina_resultados
 # tive que instalar: pip install plotly
 # tive que instalar: pip install --upgrade kaleido
 # tive que instalar plotly.express: pip install "plotly[express]"
-#tive que instalar o pandas: pip install pandas
+# tive que instalar o pandas: pip install pandas
 
 class home_view:
     def __init__(self):
