@@ -5,12 +5,12 @@ Camada Model (Modelo):
 - Define as classes de acesso a dados (GerenciadorFilmes).
 - Define a lógica de negócios e cálculos (GerenciadorLanchonete, Calculos).
 """
-from src.database.database import get_db_connection
+from database.database import get_db_connection
 import psycopg2
 import smtplib
 from email.mime.text import MIMEText
 from password_validator import PasswordValidator
-from src.config.loguin_config import servidor_smtp, porta, usuario, senha
+#from src.config.loguin_config import servidor_smtp, porta, usuario, senha
 
 #===== MODEL ========
 def enviar_email(destinatario):

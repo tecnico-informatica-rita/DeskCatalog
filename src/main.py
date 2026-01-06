@@ -44,16 +44,16 @@ def main(page: ft.Page):
 
         #page.add(pagina_emprestimo(app, page))
         #app.run()
-        #view = cadastro_view(conn)
-        #page.add(view.main_cadastro(page))
+        view = cadastro_view(conn)
+        page.add(view.main_cadastro(page))
 
         #view = emprestimo_view(conn)
         #page.add(view.main_emprestimo(page))
         
         #page.add(devolucao_view(conn))
 
-        view = devolucao_view(conn)
-        page.add(view.main_devolucao(page))
+        #view = devolucao_view(conn)
+        #page.add(view.main_devolucao(page))
 
         
     except Exception as e:

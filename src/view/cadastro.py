@@ -1,5 +1,5 @@
 import flet as ft
-from model.model_deskcatalog import Produto
+from view.mock_model import Produto
 from controller.controller import ControllerDeskCatalog
  
  

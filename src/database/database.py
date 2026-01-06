@@ -4,7 +4,7 @@ Responsável pela conexão com o banco de dados,
 criação de tabelas e população de dados iniciais.
 """
 import psycopg2
-from src.config.config import DB_CONFIG
+from config.config import DB_CONFIG
 
 def get_db_connection():
     """Cria e retorna uma nova conexão com o banco de dados."""
