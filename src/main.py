@@ -1,4 +1,5 @@
 # main.py
+
 """
 Ponto de entrada principal do projeto.
 
@@ -52,7 +53,6 @@ def main(page: ft.Page):
         #page.add(view.main_emprestimo(page))
         
         #page.add(devolucao_view(conn))
-        #app.run()
 
         #view = devolucao_view(conn)
         #page.add(view.main_devolucao(page))
