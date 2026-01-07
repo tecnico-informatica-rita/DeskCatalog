@@ -2,7 +2,7 @@ import pandas as pd
 import plotly.express as px
 import flet as ft
 from flet.plotly_chart import PlotlyChart
-from pesquisa import pagina_resultados
+from view.pesquisa import pagina_resultados
 
 # tive que instalar o flet: pip install flet
 # tive que atualizar o flet com: pip install "flet[all]==0.25.2" --upgrade
@@ -11,7 +11,7 @@ from pesquisa import pagina_resultados
 # tive que instalar plotly.express: pip install "plotly[express]"
 # tive que instalar o pandas: pip install pandas
 
-class home_view:
+class home_view_pasta:
     def __init__(self):
         pass
 
@@ -297,7 +297,7 @@ class home_view:
         )
 
 def main(page: ft.Page):
-    home = home_view()
+    home = home_view_pasta()
     home.main(page)
 
 ft.app(target=main)

@@ -90,7 +90,7 @@ class ControllerDeskCatalog:
 
     except ValueError as e:
       raise ValueError(str(e))
-    except Exception:
+    except Exception as e:
         raise ValueError(MSG["erro_geral"]["mensagem"])
   
 

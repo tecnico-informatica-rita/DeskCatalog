@@ -4,8 +4,9 @@ from flet.plotly_chart import PlotlyChart
 import pandas as pd
 import asyncio
 
-class home_view:
-    def __init__(self):
+class home_view_arquivo:
+    def __init__(self, conn):
+        self.conn = conn
         self.container_graficos = ft.Row(
             alignment=ft.MainAxisAlignment.CENTER,
             spacing=20,
@@ -23,7 +24,7 @@ class home_view:
             visible=True
         )
 
-    def main(self, page: ft.Page):
+    def main_home_arquivo(self, page: ft.Page):
         page.title = "Home"
         page.theme_mode = ft.ThemeMode.LIGHT
         page.padding = 0
