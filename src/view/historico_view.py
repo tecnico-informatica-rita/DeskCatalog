@@ -2,8 +2,8 @@ import flet as ft
 from controller.controller import mostrar_historico_transacoes_de_emprestimo
 
 class HistoricoView:
-    def __init__(self):
-        pass
+    def __init__(self, conn):
+        self.conn = conn
 
     def main(self, page: ft.Page):
         page.title = "Histórico de Empréstimos"
@@ -34,7 +34,7 @@ class HistoricoView:
         )
 
         # --- BUSCA OS DADOS ---
-        dados = mostrar_historico_transacoes_de_emprestimo()
+        dados = mostrar_historico_transacoes_de_emprestimo(self.conn)
 
         linhas = []
         

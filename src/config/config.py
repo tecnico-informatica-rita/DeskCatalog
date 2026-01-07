@@ -11,11 +11,6 @@ DB_PORT = int(os.environ.get("DB_PORT"))
 DB_NAME = os.environ.get("DB_NAME")
 DB_PASSWORD = os.environ.get("DB_PASSWORD")
 
-servidor_smtp = os.getenv("SMTP_SERVIDOR")
-porta = int(os.getenv("SMTP_PORTA"))
-usuario = os.getenv("SMTP_USUARIO")
-senha = os.getenv("SMTP_SENHA")
-
 DB_CONFIG = {
     'host': DB_HOST,
     'user': DB_USER,
@@ -23,4 +18,13 @@ DB_CONFIG = {
     'password': DB_PASSWORD,
     'database': DB_NAME
 }
+
+
+# Gerando conexão com servidor SMTP --------------------------------------------------------------------------------------------
+servidor_smtp = os.getenv("SMTP_SERVIDOR")
+porta = int(os.getenv("SMTP_PORTA"))
+usuario = os.getenv("SMTP_USUARIO")
+senha = os.getenv("SMTP_SENHA")
+
+
     

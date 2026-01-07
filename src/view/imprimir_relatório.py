@@ -2,7 +2,9 @@ import flet as ft
 from controller.controller import mostrar_informaçoes_dos_ultimos_30_dias
 
 class Relatorio30DiasView:
-    
+    def __init__(self, conn):
+        self.conn = conn
+        
     def main(self, page: ft.Page):
         page.title = "Relatório de emprestimos não devolvidos - Últimos 30 Dias"
         page.padding = 0
@@ -77,7 +79,7 @@ class Relatorio30DiasView:
             ],
         )
 
-        dados = mostrar_informaçoes_dos_ultimos_30_dias()
+        dados = mostrar_informaçoes_dos_ultimos_30_dias(self.conn)
 
         if isinstance(dados, str):
             page.add(ft.Text(dados, color="red"))

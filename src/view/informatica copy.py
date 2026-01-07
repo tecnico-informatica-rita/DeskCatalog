@@ -1,11 +1,9 @@
 import flet as ft
-from model.model import separar_o_retorno_por_variavel, pegar_linhas_da_view_do_banco
-linhas = pegar_linhas_da_view_do_banco('visao_audio_e_video')
-separar_linhas_categoria_informatica = separar_o_retorno_por_variavel(linhas)
+from model.model_deskcatalog import separar_o_retorno_por_variavel, pegar_linhas_da_view_do_banco
 
 class informatica_view:
-    def __init__(self):
-        pass
+    def __init__(self, conn):
+        self.conn = conn
 
     def main(self, page: ft.Page):
         page.title = "Informática"
@@ -122,6 +120,9 @@ class informatica_view:
         )
 
         #Inicio dos Cards ---------------------------------------------------------------------------------------------------------
+        linhas = pegar_linhas_da_view_do_banco(self.conn, 'visao_audio_e_video')
+        separar_linhas_categoria_informatica = separar_o_retorno_por_variavel(linhas)
+
         def criar_card(produto, on_click_disponivel=None, on_click_indisponivel=None):
             nome = produto["Produto"]
             status = produto["Status"].strip().lower()
@@ -214,8 +215,8 @@ class informatica_view:
 
 
 
-def main(page: ft.Page):
-    view = informatica_view()
+def main(page: ft.Page, conn):
+    view = informatica_view(conn)
     view.main(page)
 
 ft.app(target=main)

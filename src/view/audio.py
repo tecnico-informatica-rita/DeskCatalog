@@ -1,12 +1,12 @@
 import flet as ft
 import asyncio
 
-from model.model import separar_o_retorno_por_variavel, pegar_linhas_da_view_do_banco
+from model.model_deskcatalog import separar_o_retorno_por_variavel, pegar_linhas_da_view_do_banco
 
 
 class audio_view:
-    def __init__(self):
-        pass
+    def __init__(self, conn):
+        self.conn = conn
 
     def main(self, page: ft.Page):
         page.title = "Áudio / Vídeo"
@@ -64,7 +64,7 @@ class audio_view:
         )
 
         # ================= DADOS =================
-        linhas = pegar_linhas_da_view_do_banco("visao_audio_e_video")
+        linhas = pegar_linhas_da_view_do_banco(self.conn, "visao_audio_e_video")
         separar_linhas_categoria = separar_o_retorno_por_variavel(linhas)
 
         # ================= GRID =================

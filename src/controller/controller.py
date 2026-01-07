@@ -213,15 +213,19 @@ class ControllerDeskCatalog:
 
 
 
-# PARTE DA ANA --------------------------------------------------------------------------------------------------------------------
 
-#import view.view as view
-from model.model import pegar_linhas_da_view_do_banco, separar_o_retorno_por_variavel, separar_o_retorno_por_variavel_relatorio_30_dias, separar_o_retorno_por_variavel_historico_de_transaces
-from model.model import enviar_email, Autenticar_senha
+# =======================================================================================================
+# =============================================== PARTE DA ANA ==========================================
+# =======================================================================================================
 
-def dividir_retorno_por_variavel(nome_view):
+
+
+from model.model_deskcatalog import pegar_linhas_da_view_do_banco, separar_o_retorno_por_variavel, separar_o_retorno_por_variavel_relatorio_30_dias, separar_o_retorno_por_variavel_historico_de_transaces
+from model.model_deskcatalog import enviar_email, Autenticar_senha
+
+def dividir_retorno_por_variavel(conn, nome_view):
     try:
-      pegar_linhas_banco = pegar_linhas_da_view_do_banco(nome_view)
+      pegar_linhas_banco = pegar_linhas_da_view_do_banco(conn, nome_view)
       resultado = separar_o_retorno_por_variavel(pegar_linhas_banco)
       return resultado
 
@@ -247,9 +251,9 @@ def autenticar_loguin_completo(usuario, senha):
         print("Erro ao autenticar:", e)
         return False
 
-def mostrar_informaçoes_dos_ultimos_30_dias():
+def mostrar_informaçoes_dos_ultimos_30_dias(conn):
     try:
-        lista = pegar_linhas_da_view_do_banco('visao_itens_para_devolucao_30_dias')
+        lista = pegar_linhas_da_view_do_banco(conn, 'visao_itens_para_devolucao_30_dias')
         print("DEBUG consulta view:", lista) 
 
         resultado = separar_o_retorno_por_variavel_relatorio_30_dias(lista)
@@ -260,9 +264,9 @@ def mostrar_informaçoes_dos_ultimos_30_dias():
     except Exception as e:
         return f"um erro inesperado aconteceu: {e}"
     
-def mostrar_historico_transacoes_de_emprestimo():
+def mostrar_historico_transacoes_de_emprestimo(conn):
     try:
-        lista = pegar_linhas_da_view_do_banco('visao_historico_transacoes_emprestimos')
+        lista = pegar_linhas_da_view_do_banco(conn, 'visao_historico_transacoes_emprestimos')
         resultado = separar_o_retorno_por_variavel_historico_de_transaces(lista)
         return resultado
     

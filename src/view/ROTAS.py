@@ -15,21 +15,21 @@ from view.historico_30_dias import Relatorio30DiasView
 from view.historico_view import HistoricoView
 
 
-def gerenciar_rotas(page: ft.Page):
+def gerenciar_rotas(page: ft.Page, conn):
 
     rotas = {
         "/": home_view,
-        "/informatica": informatica_view,
-        "/sala": sala_view,
-        "/audio": audio_view,
-        "/outros": outros_view,
-        "/seguranca": seguranca_view,
-        "/infraestrutura": infraestrutura_view,
-        "/material": material_view,
-        "/mobiliario": mobiliario_view,
+        "/informatica": informatica_view(conn),
+        "/sala": sala_view(conn),
+        "/audio": audio_view(conn),
+        "/outros": outros_view(conn),
+        "/seguranca": seguranca_view(conn),
+        "/infraestrutura": infraestrutura_view(conn),
+        "/material": material_view(conn),
+        "/mobiliario": mobiliario_view(conn),
         
-        "/relatorio30": Relatorio30DiasView,
-        "/historico": HistoricoView,
+        "/relatorio30": Relatorio30DiasView(conn),
+        "/historico": HistoricoView(conn),
     }
 
     def route_change(e):

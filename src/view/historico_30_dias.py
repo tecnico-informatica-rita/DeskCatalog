@@ -2,8 +2,8 @@ import flet as ft
 from controller.controller import mostrar_informaçoes_dos_ultimos_30_dias
 
 class Relatorio30DiasView:
-    def __init__(self):
-        pass
+    def __init__(self, conn):
+        self.conn = conn
 
     def main(self, page: ft.Page):
         page.title = "Relatório - Últimos 30 Dias"
@@ -34,7 +34,7 @@ class Relatorio30DiasView:
         )
 
         
-        dados = mostrar_informaçoes_dos_ultimos_30_dias()
+        dados = mostrar_informaçoes_dos_ultimos_30_dias(self.conn)
 
         rows = []
         # CHECAGEM DE SEGURANÇA: Só tenta criar a tabela se 'dados' for uma lista de verdade

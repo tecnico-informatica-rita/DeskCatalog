@@ -10,7 +10,7 @@ import psycopg2
 import smtplib
 from email.mime.text import MIMEText
 from password_validator import PasswordValidator
-#from src.config.loguin_config import servidor_smtp, porta, usuario, senha
+from config.config import servidor_smtp, porta, usuario, senha
 
 #===== MODEL ========
 def enviar_email(destinatario):
