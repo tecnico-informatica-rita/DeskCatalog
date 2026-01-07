@@ -1,6 +1,6 @@
 import flet as ft
 
-from view.home import home_view
+from view.home_modular import home_view
 from view.informatica import informatica_view
 from view.sala import sala_view
 from view.audio import audio_view

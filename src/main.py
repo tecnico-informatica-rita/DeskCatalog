@@ -22,6 +22,7 @@ from view.emprestimo import emprestimo_view
 from view.devolucao import devolucao_view
 
 # testando a view das meninas
+from view.home_modular.home import home_view
 
 #from view.home.home import home_view as hw
 
@@ -59,6 +60,9 @@ def main(page: ft.Page):
 
         #view = devolucao_view(conn)
         #page.add(view.main_devolucao(page))
+
+        view = home_view(conn)
+        page.add(view.main_home(page))
 
         
     except Exception as e:

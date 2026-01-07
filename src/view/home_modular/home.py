@@ -11,11 +11,11 @@ from view.pesquisa import pagina_resultados
 # tive que instalar plotly.express: pip install "plotly[express]"
 # tive que instalar o pandas: pip install pandas
 
-class home_view_pasta:
-    def __init__(self):
-        pass
+class home_view:
+    def __init__(self, conn):
+        self.conn = conn
 
-    def main(self, page: ft.Page):
+    def main_home(self, page: ft.Page):
         page.title = "Home"
         page.window.resizable = False
         page.theme_mode = ft.ThemeMode.LIGHT
@@ -296,8 +296,14 @@ class home_view_pasta:
             )
         )
 
-def main(page: ft.Page):
-    home = home_view_pasta()
-    home.main(page)
+        return ft.Column(
+                controls=[
+                    ft.Text("Home funcionando", size=24),
+                ]
+            )
+    
+'''def main(page: ft.Page, conn):
+    home = home_view(conn)
+    home.main_home(page)
 
-ft.app(target=main)
+ft.app(target=main)'''

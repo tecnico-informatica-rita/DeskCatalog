@@ -4,7 +4,7 @@ from flet.plotly_chart import PlotlyChart
 import pandas as pd
 import asyncio
 
-class home_view_arquivo:
+class home_view:
     def __init__(self, conn):
         self.conn = conn
         self.container_graficos = ft.Row(
@@ -24,7 +24,7 @@ class home_view_arquivo:
             visible=True
         )
 
-    def main_home_arquivo(self, page: ft.Page):
+    def main_home(self, page: ft.Page):
         page.title = "Home"
         page.theme_mode = ft.ThemeMode.LIGHT
         page.padding = 0
