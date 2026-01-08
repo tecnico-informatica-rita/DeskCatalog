@@ -64,7 +64,6 @@ def main(page: ft.Page):
         view = home_view(conn)
         page.add(view.main_home(page))
 
-        
     except Exception as e:
         print(f"❌ Ocorreu um erro inesperado na aplicação: {e}")
     
