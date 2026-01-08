@@ -382,14 +382,13 @@ def view_grafico_emprestimoCat_diarios(conn):
         
 def view_grafico_itensPenCat(conn):
         sql_select_view = """
-            REATE OR REPLACE VIEW vw_grafico_itensPenCat AS
-            SELECT c.nome_categoria,
-            COALESCE(SUM(CASE WHEN s.descricao_status <> 'Ativo' AND CURRENT_DATE BETWEEN e.data_emprestimo AND e.data_devolucao THEN 1 ELSE 0 END), 0) AS itens_pendentes
-            FROM categorias_produto AS c
-            LEFT JOIN nomes_produtos AS n ON n.id_categoria = c.id_categoria
-            LEFT JOIN produtos_individuais AS pi ON pi.id_produto = n.id_produto
-            LEFT JOIN emprestimos AS e ON pi.nu_patrimonio = e.nu_patrimonio
-            LEFT JOIN status_produto AS s ON s.id_status_produto = pi.id_status_produto
+            CREATE OR REPLACE VIEW vw_grafico_itensPenCat AS
+            SELECT c.nome_categoria, COUNT(*) AS itens_pendentes
+            FROM categorias_produto c
+            LEFT JOIN nomes_produtos n ON n.id_categoria = c.id_categoria
+            LEFT JOIN produtos_individuais pi ON pi.id_produto = n.id_produto
+            LEFT JOIN emprestimos e ON e.nu_patrimonio = pi.nu_patrimonio
+            WHERE e.data_devolucao < CURRENT_DATE AND e.devolvido_em IS NULL
             GROUP BY c.nome_categoria
             ORDER BY c.nome_categoria;
     """

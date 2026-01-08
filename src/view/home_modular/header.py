@@ -19,8 +19,10 @@ def home_header(on_search=None):
         on_submit=enviar_pesquisa,
     )
 
-    return ft.Stack(
-        clip_behavior=ft.ClipBehavior.NONE,
+    return ft.Container( # Envolva o Stack em um Container com altura definida
+        height=650,
+        content= ft.Stack(
+        clip_behavior=ft.ClipBehavior.HARD_EDGE,
         controls=[
             # ===== FUNDO COM GIF =====
             ft.Container(
@@ -43,4 +45,5 @@ def home_header(on_search=None):
                 )
             ),
         ]
+    )
     )

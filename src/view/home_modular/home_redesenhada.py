@@ -1,6 +1,4 @@
 import flet as ft
-from header import home_header
-from categorias import home_categories
 
 '''class HomeView:
     def __init__(self, conn):
@@ -22,21 +20,24 @@ from categorias import home_categories
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
         )'''
 
-import flet as ft
-from header import home_header
-from categorias import home_categories
-from navegacao import criar_navigation
+'''import flet as ft
+from view.home_modular.header import home_header
+from view.home_modular.categorias import home_categories
+from view.home_modular.navegacao import criar_navigation
+from view.home_modular.dashboard import HomeDashboard
+from model.model_deskcatalog import GerenciarGraficos
 
 
 class HomeView:
     def __init__(self, conn):
         self.conn = conn
+        self.dashboard = HomeDashboard(self.conn, GerenciarGraficos(conn))
 
     def _on_search(self, texto):
         print("Pesquisando por:", texto)
         # depois:
         # page.go(f"/resultado?query={texto}")
-        
+
     def build(self, page: ft.Page):
         # ---------------- CONFIGURAÇÃO DA PÁGINA ----------------
         page.title = "Home"
@@ -44,19 +45,65 @@ class HomeView:
         page.padding = 0
 
         # ---------------- NAVIGATION ----------------
-        appbar, drawer = criar_navigation(page)
-        page.appbar = appbar
-        page.drawer = drawer
-
+        
         # ---------------- CONTEÚDO DA HOME ----------------
         return ft.Column(
             controls=[
                 home_header(),
+                self.dashboard.build(page),
                 home_categories(),
                 # depois entra: home_charts(self.conn)
             ],
-            expand=True,
+            expand=False,
             scroll=ft.ScrollMode.AUTO,
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+        )'''
+
+import flet as ft
+from view.home_modular.header import home_header
+from view.home_modular.categorias import home_categories
+from view.home_modular.dashboard import HomeDashboard
+from model.model_deskcatalog import GerenciarGraficos
+
+class HomeView:
+    def __init__(self, conn):
+        self.conn = conn
+        self.dashboard = HomeDashboard(self.conn, GerenciarGraficos(conn))
+
+    def _on_search(self, texto):
+        print("Pesquisando por:", texto)
+        # depois você pode navegar:
+        # page.go(f"/resultado?query={texto}")
+
+    def build(self, page: ft.Page):
+        # ---------------- CONFIGURAÇÃO DA PÁGINA ----------------
+        page.title = "Home"
+        page.theme_mode = ft.ThemeMode.LIGHT
+        page.padding = 0
+
+        # ---------------- CONTEÚDO DA HOME ----------------
+        # ⚡ Coluna principal sem expand, com scroll automático
+        return ft.Column(
+            controls=[
+                # Header fixo no topo
+                home_header(on_search=self._on_search),
+
+                # Dashboard com altura fixa, não expande
+                ft.Container(
+                    content=self.dashboard.build(page),
+                    height=350,   # ⚡ altura fixa do dashboard
+                    clip_behavior=ft.ClipBehavior.HARD_EDGE,
+                    alignment=ft.alignment.center,
+                    padding=ft.Padding(20, 0, 0, 0),
+                    expand=False
+                ),
+
+                # Categorias abaixo
+                home_categories(),
+            ],
+            expand=True,                   # ⚡ importante: não expandir para tela inteira
+            scroll=ft.ScrollMode.AUTO,      # permite scroll se necessário
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
         )
+
 

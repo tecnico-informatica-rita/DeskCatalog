@@ -86,6 +86,8 @@ def criar_navigation(page: ft.Page):
                 bgcolor="white",
                 border_radius=50,
                 margin=ft.Margin(0, 0, 10, 0),
+                ink=True,
+                alignment=ft.alignment.center,
                 content=ft.Icon(ft.Icons.LOGOUT, color="#b551c7", size=30),
                 on_click=fechar_app,
             ),
@@ -95,10 +97,87 @@ def criar_navigation(page: ft.Page):
                 bgcolor="white",
                 border_radius=50,
                 margin=ft.Margin(0, 0, 20, 0),
+                ink=True,
+                alignment=ft.alignment.center,
                 content=ft.Icon(ft.Icons.QUESTION_MARK, color="#b551c7", size=30),
                 on_click=abrir_ajuda,
             ),
-        ],
+        ],   
     )
 
     return appbar, drawer
+
+
+
+'''import flet as ft
+import os
+
+
+def criar_navigation(page: ft.Page):
+    if hasattr(page, "_navigation_ready"):
+        return  # 🔒 impede recriação
+
+    page._navigation_ready = True
+
+    # ============ FECHAR APP ============
+    def fechar_app(e):
+        os._exit(0)
+
+    # ============ SNACKBAR ============
+    snack_bar = ft.SnackBar(
+        content=ft.Text(
+            "Precisa de ajuda? Use a barra de pesquisa para encontrar itens rapidamente. "
+            "Os gráficos acima mostram um resumo visual das categorias cadastradas."
+        ),
+        action="OK",
+        duration=6000,
+    )
+    page.overlay.append(snack_bar)
+
+    def abrir_ajuda(e):
+        snack_bar.open = True
+        page.update()
+
+    # ============ DRAWER ============
+    drawer = ft.NavigationDrawer(
+        on_change=lambda e: page.go([
+            "/", "/cadastro", "/emprestimo", "/devolucao", "/relatorio"
+        ][e.control.selected_index]),
+        controls=[
+            ft.NavigationDrawerDestination(label="Início", icon=ft.Icons.HOME),
+            ft.NavigationDrawerDestination(label="Cadastrar Item", icon=ft.Icons.ADD),
+            ft.NavigationDrawerDestination(label="Empréstimo", icon=ft.Icons.WIDGETS),
+            ft.NavigationDrawerDestination(label="Devolução", icon=ft.Icons.REPLAY),
+            ft.NavigationDrawerDestination(label="Relatório", icon=ft.Icons.DOWNLOAD),
+        ],
+    )
+
+    page.drawer = drawer  # 🔴 ESSENCIAL
+
+    # ============ APPBAR ============
+    page.appbar = ft.AppBar(
+        leading=ft.IconButton(
+            icon=ft.Icons.MENU,
+            icon_color="white",
+            icon_size=30,
+            on_click=lambda _: page.open(drawer),
+        ),
+        title=ft.Text("Menu", size=22, color="white"),
+        bgcolor="#b551c7",
+        actions=[
+            ft.IconButton(
+                icon=ft.Icons.QUESTION_MARK,
+                icon_color="#b551c7",
+                bgcolor="white",
+                tooltip="Ajuda",
+                on_click=abrir_ajuda,
+            ),
+            ft.IconButton(
+                icon=ft.Icons.LOGOUT,
+                icon_color="#b551c7",
+                bgcolor="white",
+                tooltip="Sair",
+                on_click=fechar_app,
+            ),
+        ],
+    )'''
