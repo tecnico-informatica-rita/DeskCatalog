@@ -153,7 +153,7 @@ from model.model_deskcatalog import GerenciarGraficos
             ],
         )'''
 
-class HomeView:
+''' CERTA   class HomeView:
     def __init__(self, conn):
         self.conn = conn
         self.dashboard = HomeDashboard(self.conn, GerenciarGraficos(conn))
@@ -173,5 +173,35 @@ class HomeView:
                 # Agora só o corpo rola
                 home_categories(),
             ],
+        )'''
+
+class HomeView:
+    def __init__(self, conn):
+        self.conn = conn
+        self.dashboard = HomeDashboard(self.conn, GerenciarGraficos(conn))
+
+    def build_layout(self, page: ft.Page):
+        return ft.Column(
+            expand=True,
+            scroll=ft.ScrollMode.AUTO,
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            controls=[
+                home_header(dashboard=self.dashboard.build(page)),
+                home_categories(),
+            ],
         )
 
+    def main_home(self, page: ft.Page):
+        page.title = "Home"
+        page.padding = 0
+        page.theme_mode = ft.ThemeMode.LIGHT
+
+        # 🔹 Recria Drawer e AppBar com rotas
+        from view.home_modular.navegacao import criar_navigation
+        appbar, drawer = criar_navigation(page)
+        page.appbar = appbar
+        page.drawer = drawer
+
+        # 🔹 Conteúdo da Home
+        layout = self.build_layout(page)
+        return layout
