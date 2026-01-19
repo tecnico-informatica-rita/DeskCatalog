@@ -1,4 +1,4 @@
-'''import flet as ft
+import flet as ft
 import pandas as pd
 import plotly.express as px
 from flet.plotly_chart import PlotlyChart
@@ -142,9 +142,10 @@ class HomeDashboard:
             )
 
         finally:
-            self.loading.page.update()'''
+            self.loading.page.update()
 
-import flet as ft
+# ATUAL =======================================
+'''import flet as ft
 import pandas as pd
 import plotly.express as px
 from flet.plotly_chart import PlotlyChart
@@ -191,7 +192,7 @@ class HomeDashboard:
         # ⚡ Container principal do dashboard
         return ft.Container(
             padding=20,
-            height=350,  # altura fixa para não sobrepor o AppBar
+            #height=350,  # altura fixa para não sobrepor o AppBar
             content=ft.Column(
                 [
                     self.loading,
@@ -255,8 +256,8 @@ class HomeDashboard:
                     margin=dict(l=10, r=10, t=50, b=10),
                 )
 
-            # Limpa e adiciona gráficos
-            '''self.container_graficos.controls.clear()
+            # Limpa e adiciona gráficos     COMENYSDO
+            *self.container_graficos.controls.clear()
             for fig in [fig_barra, fig_pizza, fig_pendentes]:
                 grafico_container = ft.Container(
                     content=PlotlyChart(fig, expand=False),  # ⚡ expand=False
@@ -271,10 +272,10 @@ class HomeDashboard:
                         color=ft.Colors.with_opacity(0.1, "black"),
                     ),
                 )
-                self.container_graficos.controls.append(grafico_container)'''
+                self.container_graficos.controls.append(grafico_container)*
             
             self.container_graficos.controls.clear()
-            for fig in [fig_barra, fig_pizza, fig_pendentes]:
+            comentado for fig in [fig_barra, fig_pizza, fig_pendentes]:
                 grafico_container = ft.Container(
                 # ⚡ ADICIONAMOS UM GESTURE DETECTOR PARA CONTROLAR O FOCO
                 content=ft.IgnorePointer(
@@ -293,6 +294,21 @@ class HomeDashboard:
                     blur_radius=15,
                     color=ft.Colors.with_opacity(0.1, "black"),
                 ),
+            )*
+
+            for i,fig in enumerate([fig_barra, fig_pizza, fig_pendentes]):
+                grafico_container = ft.Container(
+                    key=f"grafico_{i}",  # 🔑 ISSO É O SEGREDO
+                    content=PlotlyChart(fig, expand=False),
+                    width=380,
+                    height=320,
+                    bgcolor="white",
+                    border_radius=15,
+                    padding=10,
+                    shadow=ft.BoxShadow(
+                blur_radius=15,
+                color=ft.Colors.with_opacity(0.1, "black"),
+                ),
             )
             self.container_graficos.controls.append(grafico_container)
 
@@ -307,4 +323,4 @@ class HomeDashboard:
 
         finally:
             # ⚡ Atualiza a página usando a referência do page salva
-            self.page.update()
+            self.page.update()'''
