@@ -157,7 +157,7 @@ class Relatorio30DiasView:
             )
         )
 
-        page.add(layout_principal)
+        return layout_principal
 #Deve ser puxado pelo arquivo main
 '''
 def main(page: ft.Page):

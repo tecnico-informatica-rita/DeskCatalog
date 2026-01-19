@@ -32,6 +32,13 @@ class emprestimo_view:
  
         #Início Menu ---------------------------------------------------------------------------------------------------------------
         page.drawer = ft.NavigationDrawer(
+            on_change=lambda e: page.go([
+                "/emprestimo",   
+                "/cadastro",  
+                "/devolucao",   
+                "/relatorio",   
+                "/",           
+            ][e.control.selected_index]),
             controls=[
                 ft.NavigationDrawerDestination("Empréstimo", icon=ft.Icons.WIDGETS),
                 ft.NavigationDrawerDestination("Cadastrar Item", icon=ft.Icons.ADD_CIRCLE),

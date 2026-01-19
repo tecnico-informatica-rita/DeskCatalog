@@ -49,7 +49,7 @@ def criar_navigation(page: ft.Page):
             "/cadastro",        # 1
             "/emprestimo",      # 2
             "/devolucao",       # 3
-            "/relatorio",       # 4
+            "/imprimir_relatório",       # 4
         ][e.control.selected_index]),
         controls=[
             ft.NavigationDrawerDestination(label="Início", icon=ft.Icons.HOME),

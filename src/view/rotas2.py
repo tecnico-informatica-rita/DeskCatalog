@@ -3,7 +3,7 @@ from view.home_modular.home_redesenhada import HomeView
 from view.cadastro import cadastro_view
 from view.emprestimo import emprestimo_view
 from view.devolucao import devolucao_view
-# from view.relatorio import RelatorioView
+from view.imprimir_relatório import Relatorio30DiasView
 
 # rotas.py
 '''def gerenciar_rotas(page: ft.Page, conn):
@@ -33,6 +33,7 @@ def gerenciar_rotas(page: ft.Page, conn):
         "/cadastro": lambda: cadastro_view(conn).main_cadastro(page),
         "/emprestimo": lambda: emprestimo_view(conn).main_emprestimo(page),
         "/devolucao": lambda: devolucao_view(conn).main_devolucao(page),
+        "/imprimir_relatório": lambda: Relatorio30DiasView(conn).main(page),
     }
 
     def route_change(e):
