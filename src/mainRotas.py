@@ -1,6 +1,6 @@
 import flet as ft
 from view.home_modular.navegacao import criar_navigation
-from database.database_banco import get_db_connection
+import database.database_banco as database
 from view.rotas2 import gerenciar_rotas  # importando o gerenciador de rotas
 
 def main(page: ft.Page):
@@ -10,7 +10,9 @@ def main(page: ft.Page):
     page.padding = 0
     page.scroll = None
 
-    conn = get_db_connection()
+    conn = database.get_db_connection()
+    database.criar_tabelas(conn)
+    database.popular_dados_padrao(conn)
 
     # Configura o sistema de rotas
     page.on_route_change = gerenciar_rotas(page, conn)

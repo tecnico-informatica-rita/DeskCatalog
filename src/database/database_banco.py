@@ -87,6 +87,14 @@ def criar_tabelas(conn):
         );
     """
 
+    create_loguin_informacoes = """
+    CREATE TABLE IF NOT EXISTS loguin_informacoes(
+        id_loguin SERIAL PRIMARY KEY,
+        email_login TEXT NOT NULL UNIQUE,
+        senha_login TEXT NOT NULL
+        );
+    """
+
     
     try:
         with conn.cursor() as cursor:
@@ -96,6 +104,7 @@ def criar_tabelas(conn):
             cursor.execute(create_nomes_produtos)
             cursor.execute(create_produtos_individuais)
             cursor.execute(create_emprestimos)
+            cursor.execute(create_loguin_informacoes)
 
         conn.commit()
     except Exception as e:
