@@ -280,24 +280,22 @@ def popular_dados_padrao(conn):
         with conn.cursor() as cursor:
             # Verifica se já existem dados
             cursor.execute("SELECT COUNT(*) FROM nomes_produtos")
-            if cursor.fetchone()[0] > 0:
+            if cursor.fetchone()[0] == 0:
+                # Populando
+                inserir_categorias_produto(conn)
+                inserir_status_produto(conn)
+                inserir_status_disponibilidade_produto(conn)
+                inserir_nomes_produtos_e_individuais(conn)
+                conn.commit()
+                print("✅ Dados padrão inseridos.")
+            else:
                 print("ℹ️  Banco de dados já populado. Ignorando...")
-                return
                 
-            # Populando
-            inserir_categorias_produto(conn)
-            inserir_status_produto(conn)
-            inserir_status_disponibilidade_produto(conn)
-            inserir_nomes_produtos_e_individuais(conn)
-            conn.commit()
-            print("✅ Dados padrão inseridos.")
-
             # Depois crie as views
             criar_todas_views(conn)
             conn.commit() # Commit para salvar a criação da view (se necessário)
-            print("✅ Views criadas com sucesso.")
-        print("✅ Banco de dados populado com dados padrão.")
-            
+            print("✅ Views criadas ou atualizadas com sucesso.")
+        
     except Exception as e:
         print(f"❌ Erro ao popular dados padrão: {e}")
         conn.rollback()

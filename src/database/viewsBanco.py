@@ -17,14 +17,14 @@ def criar_view_todos_produtos(conn): # consertar para transformar ela em histór
         ORDER BY 
         c.nome_categoria ASC,
         n.nome_produto ASC,
-        pi.nu_patrimonio DESC
+        pi.nu_patrimonio DESC;
     """
     try:
         with conn.cursor() as cur:
             cur.execute(sql_select_view,)
         return True
     except Exception as e:
-        raise ValueError (f"Erro inesperado ao realizar query: {e}")
+        raise ValueError (f"Erro inesperado ao realizar query de todos os produtos: {e}")
     
 def criar_view_produtos_exibicao_qtdAtivos(conn):
     sql_select_view = """
@@ -46,7 +46,7 @@ def criar_view_produtos_exibicao_qtdAtivos(conn):
             cur.execute(sql_select_view,)
         return True
     except Exception as e:
-        raise ValueError (f"Erro inesperado ao realizar query: {e}")
+        raise ValueError (f"Erro inesperado ao realizar query da exibição de produtos ativos: {e}")
     
 def criar_view_prod_disponiveis(conn):
     sql_select_view = """
@@ -91,15 +91,16 @@ def view_grafico_comparacao_ativos_inativos(conn):
         SELECT 
             SUM(CASE WHEN s.descricao_status = 'Ativo' THEN 1 END) AS produtos_ativos,
 		    SUM(CASE WHEN s.descricao_status <> 'Ativo' THEN 1 END) AS produtos_inativos,
+            COUNT(*) AS total
             FROM produtos_individuais AS pi
-            JOIN status_produto AS s ON pi.id_status_produto = s.id_status_produto
+            JOIN status_produto AS s ON pi.id_status_produto = s.id_status_produto;
     """
         try:
             with conn.cursor() as cur:
                 cur.execute(sql_select_view,)
             return True
         except Exception as e:
-            raise ValueError (f"Erro inesperado ao realizar query: {e}")
+            raise ValueError (f"Erro inesperado ao realizar query de produtos ativos X inativos: {e}")
 
 def view_grafico_emprestimoCat_diarios(conn):
         sql_select_view = """
@@ -196,47 +197,111 @@ def criar_view_devolucoes(conn):
 # ======================================== PARTE DA ANA =====================================================================
 # ===========================================================================================================================
 
-def criar_view_produtos_emprestados_30_dias(conn):
-    sql_select_view = """
-    CREATE OR REPLACE VIEW visao_itens_para_devolucao_30_dias AS
-    SELECT 
-    n.nome_produto,
-    e.nome_emprestimos,
-    e.id_disponibilidade,  
-    TO_CHAR(e.data_emprestimo, 'DD/MM/YYYY') AS data_brasil,
-    COUNT(e.nu_patrimonio) AS quantidade_emprestada,
-    s.descricao_disponibilidade  
-    FROM 
-    emprestimos AS e
-    JOIN 
-    produtos_individuais AS pi ON pi.nu_patrimonio = e.nu_patrimonio
-    JOIN 
-    nomes_produtos AS n ON n.id_produto = pi.id_produto
-    JOIN 
-    status_disponibilidade_produto AS s ON s.id_disponibilidade = e.id_disponibilidade
-    WHERE
-    s.descricao_disponibilidade = 'Em atraso'
-    OR (s.descricao_disponibilidade = 'Emprestado' 
-        AND e.data_emprestimo >= (CURRENT_DATE - INTERVAL '30 days'))
-    GROUP BY 
-    n.nome_produto, 
-    e.nome_emprestimos, 
-    e.data_emprestimo,
-    e.id_disponibilidade,
-    s.descricao_disponibilidade
-    ORDER BY 
-    e.data_emprestimo DESC;
-    """
-    try:
-        with conn.cursor() as cur:
-            cur.execute(sql_select_view,)
-            print("View criada")
-        return True
-    except Exception as e:
-        raise ValueError (f"Erro inesperado ao realizar query: {e}")
-    
-
-def criar_view_historico_emprestados(conn):
+def criar_view_visao_audio_e_video(conn):
+        sql_select_view = """
+            CREATE OR REPLACE VIEW visao_audio_e_video AS SELECT np.nome_produto AS "Produto",
+            sp.descricao_status AS "Status Disponibilidade Atual",
+            count(pi.nu_patrimonio) AS "Unidades (Total)"
+            FROM produtos_individuais pi
+            JOIN nomes_produtos np ON pi.id_produto = np.id_produto
+            JOIN categorias_produto cp ON np.id_categoria = cp.id_categoria
+            JOIN status_produto sp ON pi.id_status_produto = sp.id_status_produto
+            WHERE cp.nome_categoria = 'Áudio e Vídeo'
+            GROUP BY np.nome_produto, sp.descricao_status
+            ORDER BY np.nome_produto, sp.descricao_status;
+        """
+        try:
+            with conn.cursor() as cur:
+                cur.execute(sql_select_view,)
+            return True
+        except Exception as e:
+            raise ValueError (f"Erro inesperado ao realizar query: {e}")
+        
+def criar_view_visao_eletrodomesticos(conn):
+        sql_select_view = """
+            CREATE OR REPLACE VIEW visao_eletrodomesticos
+            AS SELECT np.nome_produto AS "Produto",
+            sp.descricao_status AS "Status Disponibilidade Atual",
+            count(pi.nu_patrimonio) AS "Unidades (Total)"
+            FROM produtos_individuais pi
+            JOIN nomes_produtos np ON pi.id_produto = np.id_produto
+            JOIN categorias_produto cp ON np.id_categoria = cp.id_categoria
+            JOIN status_produto sp ON pi.id_status_produto = sp.id_status_produto
+            WHERE cp.nome_categoria = 'Eletrodomésticos'
+            GROUP BY np.nome_produto, sp.descricao_status
+            ORDER BY np.nome_produto, sp.descricao_status;
+        """
+        try:
+            with conn.cursor() as cur:
+                cur.execute(sql_select_view,)
+            return True
+        except Exception as e:
+            raise ValueError (f"Erro inesperado ao realizar query: {e}")
+        
+def criar_view_visao_equipamentos_eletronicos(conn):
+        sql_select_view = """
+            CREATE OR REPLACE VIEW visao_equipamentos_eletronicos
+            AS SELECT np.nome_produto AS "Produto",
+            sp.descricao_status AS "Status Disponibilidade Atual",
+            count(pi.nu_patrimonio) AS "Unidades (Total)"
+            FROM produtos_individuais pi
+            JOIN nomes_produtos np ON pi.id_produto = np.id_produto
+            JOIN categorias_produto cp ON np.id_categoria = cp.id_categoria
+            JOIN status_produto sp ON pi.id_status_produto = sp.id_status_produto
+            WHERE cp.nome_categoria = 'Equipamentos Eletrônicos'
+            GROUP BY np.nome_produto, sp.descricao_status
+            ORDER BY np.nome_produto, sp.descricao_status;
+        """
+        try:
+            with conn.cursor() as cur:
+                cur.execute(sql_select_view,)
+            return True
+        except Exception as e:
+            raise ValueError (f"Erro inesperado ao realizar query: {e}")
+        
+def criar_view_visao_esportes_e_lazer(conn):
+        sql_select_view = """
+            CREATE OR REPLACE VIEW visao_esportes_e_lazer
+            AS SELECT np.nome_produto AS "Produto",
+            sp.descricao_status AS "Status Disponibilidade Atual",
+            count(pi.nu_patrimonio) AS "Unidades (Total)"
+            FROM produtos_individuais pi
+            JOIN nomes_produtos np ON pi.id_produto = np.id_produto
+            JOIN categorias_produto cp ON np.id_categoria = cp.id_categoria
+            JOIN status_produto sp ON pi.id_status_produto = sp.id_status_produto
+            WHERE cp.nome_categoria = 'Esportes e Lazer'
+            GROUP BY np.nome_produto, sp.descricao_status
+            ORDER BY np.nome_produto, sp.descricao_status;
+        """
+        try:
+            with conn.cursor() as cur:
+                cur.execute(sql_select_view,)
+            return True
+        except Exception as e:
+            raise ValueError (f"Erro inesperado ao realizar query: {e}")
+        
+def criar_view_visao_esportes_e_lazer(conn):
+        sql_select_view = """
+            CREATE OR REPLACE VIEW visao_esportes_e_lazer
+            AS SELECT np.nome_produto AS "Produto",
+            sp.descricao_status AS "Status Disponibilidade Atual",
+            count(pi.nu_patrimonio) AS "Unidades (Total)"
+            FROM produtos_individuais pi
+            JOIN nomes_produtos np ON pi.id_produto = np.id_produto
+            JOIN categorias_produto cp ON np.id_categoria = cp.id_categoria
+            JOIN status_produto sp ON pi.id_status_produto = sp.id_status_produto
+            WHERE cp.nome_categoria = 'Esportes e Lazer'
+            GROUP BY np.nome_produto, sp.descricao_status
+            ORDER BY np.nome_produto, sp.descricao_status;
+        """
+        try:
+            with conn.cursor() as cur:
+                cur.execute(sql_select_view,)
+            return True
+        except Exception as e:
+            raise ValueError (f"Erro inesperado ao realizar query: {e}")
+        
+def criar_view_visao_historico_transacoes_emprestimos(conn):
     sql_select_view = """
         CREATE OR REPLACE VIEW visao_historico_transacoes_emprestimos AS
         SELECT n.nome_produto, e.nome_emprestimos, e.data_emprestimo, s.descricao_disponibilidade, COUNT(e.nu_patrimonio) AS quantidade_total
@@ -256,10 +321,223 @@ def criar_view_historico_emprestados(conn):
     except Exception as e:
         raise ValueError (f"Erro inesperado ao realizar query: {e}")
     
+def criar_view_visao_informatica(conn):
+        sql_select_view = """
+            CREATE OR REPLACE VIEW visao_informatica
+            AS SELECT np.nome_produto AS "Produto",
+            sp.descricao_status AS "Status Disponibilidade Atual",
+            count(pi.nu_patrimonio) AS "Unidades (Total)"
+            FROM produtos_individuais pi
+            JOIN nomes_produtos np ON pi.id_produto = np.id_produto
+            JOIN categorias_produto cp ON np.id_categoria = cp.id_categoria
+            JOIN status_produto sp ON pi.id_status_produto = sp.id_status_produto
+            WHERE cp.nome_categoria = 'Informática'
+            GROUP BY np.nome_produto, sp.descricao_status
+            ORDER BY np.nome_produto, sp.descricao_status;
+        """
+        try:
+            with conn.cursor() as cur:
+                cur.execute(sql_select_view,)
+            return True
+        except Exception as e:
+            raise ValueError (f"Erro inesperado ao realizar query: {e}")
+        
+def criar_view_visao_infraestrutura(conn):
+        sql_select_view = """
+            CREATE OR REPLACE VIEW visao_infraestrutura
+            AS SELECT np.nome_produto AS "Produto",
+            sp.descricao_status AS "Status Disponibilidade Atual",
+            count(pi.nu_patrimonio) AS "Unidades (Total)"
+            FROM produtos_individuais pi
+            JOIN nomes_produtos np ON pi.id_produto = np.id_produto
+            JOIN categorias_produto cp ON np.id_categoria = cp.id_categoria
+            JOIN status_produto sp ON pi.id_status_produto = sp.id_status_produto
+            WHERE cp.nome_categoria = 'Infraestrutura'
+            GROUP BY np.nome_produto, sp.descricao_status
+            ORDER BY np.nome_produto, sp.descricao_status;
+        """
+        try:
+            with conn.cursor() as cur:
+                cur.execute(sql_select_view,)
+            return True
+        except Exception as e:
+            raise ValueError (f"Erro inesperado ao realizar query: {e}")
+        
+def criar_view_visao_itens_para_devolucao_30_dias(conn):
+        sql_select_view = """
+            CREATE OR REPLACE VIEW visao_itens_para_devolucao_30_dias
+            AS SELECT n.nome_produto,
+            e.nome_emprestimos,
+            e.id_disponibilidade,
+            to_char(e.data_emprestimo, 'DD/MM/YYYY'::text) AS data_brasil,
+            count(e.nu_patrimonio) AS quantidade_emprestada, s.descricao_disponibilidade
+            FROM emprestimos e
+            JOIN produtos_individuais pi ON pi.nu_patrimonio = e.nu_patrimonio
+            JOIN nomes_produtos n ON n.id_produto = pi.id_produto
+            JOIN status_disponibilidade_produto s ON s.id_disponibilidade = e.id_disponibilidade
+            WHERE s.descricao_disponibilidade = 'Em atraso'::text OR s.descricao_disponibilidade = 'Emprestado'::text AND e.data_emprestimo >= (CURRENT_DATE - '30 days'::interval)
+            GROUP BY n.nome_produto, e.nome_emprestimos, e.data_emprestimo, e.id_disponibilidade, s.descricao_disponibilidade
+            ORDER BY e.data_emprestimo DESC;
+        """
+        try:
+            with conn.cursor() as cur:
+                cur.execute(sql_select_view,)
+            return True
+        except Exception as e:
+            raise ValueError (f"Erro inesperado ao realizar query: {e}")
+        
+def criar_view_visao_limpeza_e_higiene(conn):
+        sql_select_view = """
+            CREATE OR REPLACE VIEW visao_limpeza_e_higiene
+            AS SELECT np.nome_produto AS "Produto",
+            sp.descricao_status AS "Status Disponibilidade Atual",
+            count(pi.nu_patrimonio) AS "Unidades (Total)"
+            FROM produtos_individuais pi
+            JOIN nomes_produtos np ON pi.id_produto = np.id_produto
+            JOIN categorias_produto cp ON np.id_categoria = cp.id_categoria
+            JOIN status_produto sp ON pi.id_status_produto = sp.id_status_produto
+            WHERE cp.nome_categoria = 'Limpeza e Higiene'
+            GROUP BY np.nome_produto, sp.descricao_status
+            ORDER BY np.nome_produto, sp.descricao_status;
+        """
+        try:
+            with conn.cursor() as cur:
+                cur.execute(sql_select_view,)
+            return True
+        except Exception as e:
+            raise ValueError (f"Erro inesperado ao realizar query: {e}")
+        
+def criar_view_visao_material_de_escritorio(conn):
+        sql_select_view = """
+           CREATE OR REPLACE VIEW visao_material_de_escritorio
+            AS SELECT np.nome_produto AS "Produto",
+            sp.descricao_status AS "Status Disponibilidade Atual",
+            count(pi.nu_patrimonio) AS "Unidades (Total)"
+            FROM produtos_individuais pi
+            JOIN nomes_produtos np ON pi.id_produto = np.id_produto
+            JOIN categorias_produto cp ON np.id_categoria = cp.id_categoria
+            JOIN status_produto sp ON pi.id_status_produto = sp.id_status_produto
+            WHERE cp.nome_categoria = 'Material de Escritório'
+            GROUP BY np.nome_produto, sp.descricao_status
+            ORDER BY np.nome_produto, sp.descricao_status;
+        """
+        try:
+            with conn.cursor() as cur:
+                cur.execute(sql_select_view,)
+            return True
+        except Exception as e:
+            raise ValueError (f"Erro inesperado ao realizar query: {e}")
+        
+def criar_view_visao_material_didatico(conn):
+        sql_select_view = """
+           CREATE OR REPLACE VIEW visao_material_didatico
+            AS SELECT np.nome_produto AS "Produto",
+            sp.descricao_status AS "Status Disponibilidade Atual",
+            count(pi.nu_patrimonio) AS "Unidades (Total)"
+            FROM produtos_individuais pi
+            JOIN nomes_produtos np ON pi.id_produto = np.id_produto
+            JOIN categorias_produto cp ON np.id_categoria = cp.id_categoria
+            JOIN status_produto sp ON pi.id_status_produto = sp.id_status_produto
+            WHERE cp.nome_categoria = 'Material Didático'
+            GROUP BY np.nome_produto, sp.descricao_status
+            ORDER BY np.nome_produto, sp.descricao_status;
+        """
+        try:
+            with conn.cursor() as cur:
+                cur.execute(sql_select_view,)
+            return True
+        except Exception as e:
+            raise ValueError (f"Erro inesperado ao realizar query: {e}")
+        
+def criar_view_visao_mobiliario(conn):
+        sql_select_view = """
+           CREATE OR REPLACE VIEW visao_mobiliario
+            AS SELECT np.nome_produto AS "Produto",
+            sp.descricao_status AS "Status Disponibilidade Atual",
+            count(pi.nu_patrimonio) AS "Unidades (Total)"
+            FROM produtos_individuais pi
+            JOIN nomes_produtos np ON pi.id_produto = np.id_produto
+            JOIN categorias_produto cp ON np.id_categoria = cp.id_categoria
+            JOIN status_produto sp ON pi.id_status_produto = sp.id_status_produto
+            WHERE cp.nome_categoria = 'Mobiliário'
+            GROUP BY np.nome_produto, sp.descricao_status
+            ORDER BY np.nome_produto, sp.descricao_status;
+        """
+        try:
+            with conn.cursor() as cur:
+                cur.execute(sql_select_view,)
+            return True
+        except Exception as e:
+            raise ValueError (f"Erro inesperado ao realizar query: {e}")
+
+def criar_view_visao_outros(conn):
+        sql_select_view = """
+            CREATE OR REPLACE VIEW visao_outros
+            AS SELECT np.nome_produto AS "Produto",
+            sp.descricao_status AS "Status Disponibilidade Atual",
+            count(pi.nu_patrimonio) AS "Unidades (Total)"
+            FROM produtos_individuais pi
+            JOIN nomes_produtos np ON pi.id_produto = np.id_produto
+            JOIN categorias_produto cp ON np.id_categoria = cp.id_categoria
+            JOIN status_produto sp ON pi.id_status_produto = sp.id_status_produto
+            WHERE cp.nome_categoria = 'Outros'
+            GROUP BY np.nome_produto, sp.descricao_status
+            ORDER BY np.nome_produto, sp.descricao_status;
+        """
+        try:
+            with conn.cursor() as cur:
+                cur.execute(sql_select_view,)
+            return True
+        except Exception as e:
+            raise ValueError (f"Erro inesperado ao realizar query: {e}")
+        
+def criar_view_visao_salas_laboratorios(conn):
+        sql_select_view = """
+            CREATE OR REPLACE VIEW visao_salas_laboratorios
+            AS SELECT np.nome_produto AS "Produto",
+            sp.descricao_status AS "Status Disponibilidade Atual",
+            count(pi.nu_patrimonio) AS "Unidades (Total)"
+            FROM produtos_individuais pi
+            JOIN nomes_produtos np ON pi.id_produto = np.id_produto
+            JOIN categorias_produto cp ON np.id_categoria = cp.id_categoria
+            JOIN status_produto sp ON pi.id_status_produto = sp.id_status_produto
+            WHERE cp.nome_categoria = 'Salas/Laboratórios'
+            GROUP BY np.nome_produto, sp.descricao_status
+            ORDER BY np.nome_produto, sp.descricao_status;
+        """
+        try:
+            with conn.cursor() as cur:
+                cur.execute(sql_select_view,)
+            return True
+        except Exception as e:
+            raise ValueError (f"Erro inesperado ao realizar query: {e}")
+
+def criar_view_visao_segurança(conn):
+        sql_select_view = """
+           CREATE OR REPLACE VIEW "visao_segurança"
+            AS SELECT np.nome_produto AS "Produto",
+            sp.descricao_status AS "Status Disponibilidade Atual",
+            count(pi.nu_patrimonio) AS "Unidades (Total)"
+            FROM produtos_individuais pi
+            JOIN nomes_produtos np ON pi.id_produto = np.id_produto
+            JOIN categorias_produto cp ON np.id_categoria = cp.id_categoria
+            JOIN status_produto sp ON pi.id_status_produto = sp.id_status_produto
+            WHERE cp.nome_categoria = 'Segurança'
+            GROUP BY np.nome_produto, sp.descricao_status
+            ORDER BY np.nome_produto, sp.descricao_status;
+        """
+        try:
+            with conn.cursor() as cur:
+                cur.execute(sql_select_view,)
+            return True
+        except Exception as e:
+            raise ValueError (f"Erro inesperado ao realizar query: {e}")
 
 #   ================ CRIAÇÃO DAS VIEWS ===========================
         
 def criar_todas_views(conn):
+
+    # views Rita
     criar_view_produtos_exibicao_qtdAtivos(conn)
     criar_view_todos_produtos(conn)
     view_grafico_comparacao_ativos_inativos(conn)
@@ -269,6 +547,22 @@ def criar_todas_views(conn):
     criar_view_produtos_emprestados_30_dias(conn)
     criar_view_devolucoes(conn)
 
+    # views Ana
+    criar_view_visao_audio_e_video(conn)
+    criar_view_visao_eletrodomesticos(conn)
+    criar_view_visao_equipamentos_eletronicos(conn)
+    criar_view_visao_esportes_e_lazer(conn)
+    criar_view_visao_historico_transacoes_emprestimos(conn)
+    criar_view_visao_informatica(conn)
+    criar_view_visao_infraestrutura(conn)
+    criar_view_visao_itens_para_devolucao_30_dias(conn)
+    criar_view_visao_limpeza_e_higiene(conn)
+    criar_view_visao_material_de_escritorio(conn)
+    criar_view_visao_material_didatico(conn)
+    criar_view_visao_mobiliario(conn)
+    criar_view_visao_outros(conn)
+    criar_view_visao_salas_laboratorios(conn)
+    criar_view_visao_segurança(conn)
 
 
 
