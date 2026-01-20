@@ -1,7 +1,7 @@
 import flet as ft
 
-def home_categories():
-    def botao_de_categoria(text):
+def home_categories(page: ft.Page):
+    def botao_de_categoria(text, rota):
         return ft.ElevatedButton(
             content=ft.Text(
                 text,
@@ -12,32 +12,33 @@ def home_categories():
             bgcolor="#b551c7",
             width=350,
             height=100,
+            on_click=lambda _: page.go(rota)
         )
 
     return ft.Column(
         controls=[
             ft.Row(
                 [
-                    botao_de_categoria("🏫 Salas / Laboratórios"),
-                    botao_de_categoria("💻 Informática"),
-                    botao_de_categoria("🎤 Áudio / Vídeo"),
+                    botao_de_categoria("🏫 Salas / Laboratórios", "/sala"),
+                    botao_de_categoria("💻 Informática", "/informatica"),
+                    botao_de_categoria("🎤 Áudio / Vídeo", "/audio"),
                 ],
                 alignment=ft.MainAxisAlignment.CENTER,
                 spacing=10,
             ),
             ft.Row(
                 [
-                    botao_de_categoria("❄️ Infraestrutura"),
-                    botao_de_categoria("🪑 Mobiliário"),
-                    botao_de_categoria("🖋️ Material de Escritório"),
+                    botao_de_categoria("❄️ Infraestrutura", "/infraestrutura"),
+                    botao_de_categoria("🪑 Mobiliário", "/mobiliario"),
+                    botao_de_categoria("🖋️ Material de Escritório", "/material"),
                 ],
                 alignment=ft.MainAxisAlignment.CENTER,
                 spacing=10,
             ),
             ft.Row(
                 [
-                    botao_de_categoria("🛡️ Segurança"),
-                    botao_de_categoria("... Outros"),
+                    botao_de_categoria("🛡️ Segurança", "/seguranca"),
+                    botao_de_categoria("... Outros", "/outros"),
                 ],
                 alignment=ft.MainAxisAlignment.CENTER,
                 spacing=10,

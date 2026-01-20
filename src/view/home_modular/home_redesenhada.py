@@ -187,7 +187,7 @@ class HomeView:
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
             controls=[
                 home_header(dashboard=self.dashboard.build(page)),
-                home_categories(),
+                home_categories(page),
             ],
         )
 

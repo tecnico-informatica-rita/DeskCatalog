@@ -18,7 +18,7 @@ from view.historico_view import HistoricoView
 def gerenciar_rotas(page: ft.Page, conn):
 
     rotas = {
-        "/": home_view,
+        "/": home_view(conn),
         "/informatica": informatica_view(conn),
         "/sala": sala_view(conn),
         "/audio": audio_view(conn),

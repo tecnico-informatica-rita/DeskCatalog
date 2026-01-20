@@ -28,7 +28,7 @@ from view.home_modular.home import home_view
 
 import sys            # Para encerrar o programa em caso de erro de DB
 
-def main(page: ft.Page):
+'''def main(page: ft.Page):
     """Função principal que configura e executa o sistema."""
     
     conn = None
@@ -69,23 +69,32 @@ def main(page: ft.Page):
     
     finally:
         # 4. Fechar a conexão ao sair
-        '''if conn:
+        if conn:
             conn.close()
-            print("ℹ️  Conexão com o banco de dados fechada.")'''
+            print("ℹ️  Conexão com o banco de dados fechada.")
 
 #if __name__ == "__main__":
     #main()
 
-ft.app(target=main)
+ft.app(target=main)'''
 
 
 #  PARTE DA ANA -----------------------------------------------------------------------------------------------------------------
-'''import flet as ft
+import flet as ft
 from view.ROTAS import gerenciar_rotas
-
-def main(page: ft.Page, conn):
+conn = database.get_db_connection()
+print("✅ Conexão estabelecida.")
+        
+        # 2. Garantir que tabelas e dados existam
+print("ℹ️  Verificando estrutura do banco de dados...")
+database.criar_tabelas(conn)
+database.popular_dados_padrao(conn)
+print("✅ Banco de dados pronto.")
+        
+def main(page: ft.Page):
+    conn = database.get_db_connection()
     page.on_route_change = gerenciar_rotas(page, conn)
     page.go(page.route)
 
-ft.app(target=main)'''
+ft.app(target=main)
 
